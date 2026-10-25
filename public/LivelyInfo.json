@@ -1,0 +1,17 @@
+{
+  "AppVersion": "2.0.0.0",
+  "Version": 0,
+  "Title": "Aquarium Wallpaper",
+  "Thumbnail": null,
+  "Preview": null,
+  "Desc": "A procedural low-poly freshwater aquarium.",
+  "Author": "Codex",
+  "License": "MIT",
+  "Contact": null,
+  "Type": 1,
+  "FileName": "index.html",
+  "Arguments": "--pause-event true",
+  "Id": null,
+  "Tags": ["aquarium", "fish", "procedural"],
+  "IsAbsolutePath": false
+}
