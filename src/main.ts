@@ -341,6 +341,13 @@ function playbackIsPaused(data: unknown): boolean | undefined {
   if (typeof data === "boolean") return data;
   if (typeof data === "string") {
     const state = data.toLowerCase();
+    if (state.startsWith("{") || state.startsWith("[")) {
+      try {
+        return playbackIsPaused(JSON.parse(data) as unknown);
+      } catch {
+        // Lively sometimes sends plain strings; those are interpreted below.
+      }
+    }
     if (state.includes("pause") || state.includes("stop")) return true;
     if (state.includes("play") || state.includes("resume")) return false;
     return undefined;
@@ -348,6 +355,7 @@ function playbackIsPaused(data: unknown): boolean | undefined {
   if (!data || typeof data !== "object") return undefined;
   const value = data as Record<string, unknown>;
   if (typeof value.isPaused === "boolean") return value.isPaused;
+  if (typeof value.IsPaused === "boolean") return value.IsPaused;
   if (typeof value.paused === "boolean") return value.paused;
   if (typeof value.isPlaying === "boolean") return !value.isPlaying;
   for (const key of ["playbackState", "state"]) {
