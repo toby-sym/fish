@@ -8,12 +8,90 @@
   </head>
   <body>
     <main id="aquarium" aria-label="A low-poly freshwater aquarium">
-      <canvas id="aquarium-canvas" aria-hidden="true"></canvas>
-      <section id="loading-card" aria-live="polite">
-        <p class="eyebrow">Freshwater habitat</p>
-        <h1>Aquarium</h1>
-        <p id="loading-message">Preparing your tank…</p>
-      </section>
+      <canvas id="aquarium-canvas" aria-label="Animated low-poly aquarium. Click a fish to select it."></canvas>
+      <div class="scene-caption" aria-hidden="true">
+        <span class="eyebrow">Freshwater habitat</span>
+        <strong>A quieter kind of desktop</strong>
+      </div>
+      <button id="panel-toggle" class="panel-toggle" type="button" aria-controls="control-panel" aria-expanded="false">
+        Tank care
+      </button>
+      <aside id="control-panel" class="control-panel" aria-label="Tank controls" hidden>
+        <header class="panel-header">
+          <div>
+            <p class="eyebrow">Aquarium keeper</p>
+            <h1>Tank care</h1>
+          </div>
+          <button id="panel-close" class="icon-button" type="button" aria-label="Close tank care">×</button>
+        </header>
+        <p id="save-status" class="save-status" role="status">Loading your habitat…</p>
+
+        <section class="panel-section" aria-labelledby="fish-heading">
+          <div class="section-heading">
+            <h2 id="fish-heading">Fish</h2>
+            <span id="fish-count" class="count-pill">0</span>
+          </div>
+          <label class="field-label" for="fish-select">Selected fish</label>
+          <select id="fish-select"></select>
+          <div class="field-row">
+            <label class="field grow" for="fish-name">
+              <span class="field-label">Name</span>
+              <input id="fish-name" maxlength="32" autocomplete="off" />
+            </label>
+            <button id="rename-fish" class="button button-muted align-end" type="button">Save</button>
+          </div>
+          <p id="fish-details" class="organism-details"></p>
+          <div class="button-row">
+            <button id="feed-fish" class="button button-primary" type="button">Feed selected</button>
+            <button id="remove-fish" class="button button-muted" type="button">Remove</button>
+          </div>
+          <div class="field-row add-row">
+            <label class="field grow" for="new-fish-species">
+              <span class="field-label">Add a fish</span>
+              <select id="new-fish-species"></select>
+            </label>
+            <button id="add-fish" class="button button-muted align-end" type="button">Add</button>
+          </div>
+          <div class="breed-box">
+            <p class="subheading">Pair and breed</p>
+            <div class="field-row">
+              <label class="field grow" for="parent-a"><span class="field-label">Female</span><select id="parent-a"></select></label>
+              <label class="field grow" for="parent-b"><span class="field-label">Male</span><select id="parent-b"></select></label>
+            </div>
+            <button id="breed-fish" class="button button-muted full-width" type="button">Create one juvenile</button>
+          </div>
+        </section>
+
+        <section class="panel-section" aria-labelledby="water-heading">
+          <div class="section-heading">
+            <h2 id="water-heading">Water chemistry</h2>
+            <button id="water-change" class="text-button" type="button">Change 25%</button>
+          </div>
+          <dl id="water-readings" class="readings-grid"></dl>
+          <div class="system-status">
+            <span>Biofilter <strong id="filter-reading">—</strong></span>
+            <span>Detritus <strong id="detritus-reading">—</strong></span>
+          </div>
+        </section>
+
+        <section class="panel-section" aria-labelledby="plants-heading">
+          <div class="section-heading"><h2 id="plants-heading">Living support</h2></div>
+          <div class="field-row add-row">
+            <label class="field grow" for="new-plant-species"><span class="field-label">Plant</span><select id="new-plant-species"></select></label>
+            <button id="add-plant" class="button button-muted align-end" type="button">Add</button>
+          </div>
+          <div class="field-row add-row">
+            <label class="field grow" for="new-invertebrate-species"><span class="field-label">Invertebrate</span><select id="new-invertebrate-species"></select></label>
+            <button id="add-invertebrate" class="button button-muted align-end" type="button">Add</button>
+          </div>
+          <ul id="support-list" class="support-list"></ul>
+        </section>
+
+        <footer class="panel-footer">
+          <span id="ecosystem-summary">Plants and biofilter help stabilise the water.</span>
+        </footer>
+      </aside>
+      <div id="toast" class="toast" role="status" aria-live="polite" hidden></div>
     </main>
     <script type="module" src="/src/main.ts"></script>
   </body>

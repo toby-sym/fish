@@ -3,17 +3,28 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "packageManager": "pnpm@11.25.0",
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "preview": "vite preview --host 127.0.0.1"
+    "preview": "vite preview --host 127.0.0.1",
+    "check": "pnpm lint && pnpm test:run && pnpm build",
+    "lint": "eslint src scripts vite.config.ts vitest.config.ts --max-warnings 0",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "package": "pnpm build && node scripts/inline-lively-assets.mjs && node scripts/package-wallpaper.mjs"
   },
   "dependencies": {
     "three": "^0.186.1"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/three": "^0.186.0",
+    "archiver": "^8.0.0",
+    "eslint": "^10.13.0",
     "typescript": "~5.9.3",
-    "vite": "~7.1.12"
+    "typescript-eslint": "^8.72.0",
+    "vite": "~7.1.12",
+    "vitest": "^5.0.5"
   }
 }
