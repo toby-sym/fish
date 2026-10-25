@@ -22,11 +22,14 @@ pnpm dev
 Quality and packaging commands:
 
 ```powershell
+pnpm check
 pnpm lint
 pnpm test:run
 pnpm build
 pnpm package
 ```
+
+`pnpm check` is the one-command local verification used before pushing: it runs lint, the domain tests, and a production build. For interactive work, run `pnpm dev` and open the local Vite URL printed in the terminal (normally `http://127.0.0.1:5173`). The tank-care drawer is available from the upper-right **Tank care** button. This preview works without Lively; use the ZIP steps below to check the wallpaper host itself.
 
 `pnpm package` builds the site and writes `release/aquarium-wallpaper.zip`. The ZIP contains the built page, its local assets, and `LivelyInfo.json`; it does not need a network connection at runtime.
 
