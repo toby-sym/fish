@@ -302,6 +302,7 @@ byId<HTMLButtonElement>("feed-fish").addEventListener("click", () => perform(() 
   const fish = selectedFish();
   if (!fish) return;
   requireTank().feedFish(fish.id);
+  renderer.triggerFeeding(fish.id);
   commitChange(`${fish.name} enjoyed a snack.`);
 }));
 byId<HTMLButtonElement>("remove-fish").addEventListener("click", () => perform(() => {

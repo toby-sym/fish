@@ -23,6 +23,7 @@ export class FishMotion {
   private velocityY = 0;
   private waypointTimer = 0;
   private readonly speed: number;
+  private foodTarget?: { x: number; y: number; z: number; remainingSeconds: number };
 
   constructor(seed: number, bounds: MotionBounds) {
     this.random = seededRandom(seed ^ 0x6d2b79f5);
@@ -45,10 +46,22 @@ export class FishMotion {
     if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return { ...this.position };
 
     const delta = Math.min(deltaSeconds, 0.25);
-    this.waypointTimer -= delta;
-    const dx = this.target.x - this.position.x;
-    const dy = this.target.y - this.position.y;
-    if (this.waypointTimer <= 0 || Math.hypot(dx, dy) < 0.18) this.chooseWaypoint(bounds);
+    if (this.foodTarget) {
+      this.foodTarget.remainingSeconds -= delta;
+      if (this.foodTarget.remainingSeconds <= 0) {
+        this.foodTarget = undefined;
+        this.chooseWaypoint(bounds);
+      } else {
+        this.target.x = this.foodTarget.x;
+        this.target.y = this.foodTarget.y;
+        this.target.z = this.foodTarget.z;
+      }
+    } else {
+      this.waypointTimer -= delta;
+      const dx = this.target.x - this.position.x;
+      const dy = this.target.y - this.position.y;
+      if (this.waypointTimer <= 0 || Math.hypot(dx, dy) < 0.18) this.chooseWaypoint(bounds);
+    }
 
     const targetX = this.target.x - this.position.x;
     const targetY = this.target.y - this.position.y;
@@ -63,10 +76,24 @@ export class FishMotion {
     if (Math.abs(this.velocityX) > 0.025) this.position.direction = this.velocityX < 0 ? -1 : 1;
     this.position.pitch = clamp(Math.atan2(this.velocityY, Math.max(0.08, Math.abs(this.velocityX))) * 0.42, -0.2, 0.2);
 
-    if (Math.abs(this.position.x) >= maxX - 0.01 || Math.abs(this.position.y) >= maxY - 0.01) {
+    if (!this.foodTarget && (Math.abs(this.position.x) >= maxX - 0.01 || Math.abs(this.position.y) >= maxY - 0.01)) {
       this.chooseWaypoint(bounds);
     }
     return { ...this.position };
+  }
+
+  feedAt(point: { x: number; y: number; z: number }, bounds: MotionBounds, durationSeconds = 4): void {
+    const maxX = this.axisLimit(bounds.width, bounds.padding ?? 0.7);
+    const maxY = this.axisLimit(bounds.height, bounds.padding ?? 0.7);
+    this.foodTarget = {
+      x: clamp(point.x, -maxX, maxX),
+      y: clamp(point.y, -maxY, maxY),
+      z: point.z,
+      remainingSeconds: Math.max(0, durationSeconds),
+    };
+    this.target.x = this.foodTarget.x;
+    this.target.y = this.foodTarget.y;
+    this.target.z = this.foodTarget.z;
   }
 
   private chooseWaypoint(bounds: MotionBounds): void {

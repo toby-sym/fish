@@ -12,6 +12,13 @@ interface FishActor {
   motion: FishMotion;
 }
 
+interface FoodBurst {
+  root: THREE.Group;
+  material: THREE.MeshBasicMaterial;
+  ageSeconds: number;
+  lifetimeSeconds: number;
+}
+
 const FRAME_INTERVAL_MS = 1000 / 30;
 
 export class AquariumRenderer {
@@ -19,9 +26,12 @@ export class AquariumRenderer {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-8, 8, 5, -5, 0.1, 60);
   private readonly fishFactory = new FishMeshFactory();
+  private readonly foodGeometry = new THREE.TetrahedronGeometry(0.055, 0);
   private readonly fishActors = new Map<string, FishActor>();
   private readonly plantActors = new Map<string, THREE.Group>();
   private readonly invertebrateActors = new Map<string, THREE.Group>();
+  private readonly foodBursts: FoodBurst[] = [];
+  private readonly pendingFeeding = new Set<string>();
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
   private readonly resizeObserver: ResizeObserver;
@@ -81,6 +91,45 @@ export class AquariumRenderer {
     this.selectedFishId = id;
   }
 
+  triggerFeeding(fishId: string): void {
+    const actor = this.fishActors.get(fishId);
+    if (!actor) {
+      this.pendingFeeding.add(fishId);
+      return;
+    }
+
+    const position = actor.root.position;
+    const direction = actor.root.scale.x < 0 ? -1 : 1;
+    const bounds = this.screenBounds(actor.fish.genome.visual.bodyLength + actor.fish.genome.visual.tailSize * 0.5);
+    const target = {
+      x: position.x + direction * 1.05,
+      y: position.y + 0.25,
+      z: position.z,
+    };
+    actor.motion.feedAt(target, bounds, 4.5);
+
+    const material = new THREE.MeshBasicMaterial({ color: 0xffca72, transparent: true, opacity: 0.95, depthWrite: false });
+    const root = new THREE.Group();
+    const random = seededRandom(actor.fish.genome.visual.seed ^ Math.floor(performance.now()));
+    for (let index = 0; index < 9; index += 1) {
+      const crumb = new THREE.Mesh(this.foodGeometry, material);
+      crumb.position.set(
+        target.x + (random() - 0.5) * 0.9,
+        target.y + 0.25 + random() * 0.65,
+        target.z + (random() - 0.5) * 0.5,
+      );
+      crumb.scale.setScalar(0.55 + random() * 0.9);
+      crumb.userData.foodDrift = {
+        x: (random() - 0.5) * 0.08,
+        y: -(0.18 + random() * 0.22),
+        z: (random() - 0.5) * 0.06,
+      };
+      root.add(crumb);
+    }
+    this.scene.add(root);
+    this.foodBursts.push({ root, material, ageSeconds: 0, lifetimeSeconds: 2.5 });
+  }
+
   dispose(): void {
     this.pause();
     this.resizeObserver.disconnect();
@@ -88,6 +137,8 @@ export class AquariumRenderer {
     for (const actor of this.fishActors.values()) this.disposeObject(actor.root, false);
     for (const actor of this.plantActors.values()) this.disposeObject(actor);
     for (const actor of this.invertebrateActors.values()) this.disposeObject(actor);
+    for (const burst of this.foodBursts) burst.material.dispose();
+    this.foodBursts.length = 0;
     this.fishActors.clear();
     this.plantActors.clear();
     this.invertebrateActors.clear();
@@ -99,6 +150,7 @@ export class AquariumRenderer {
       }
     });
     this.fishFactory.dispose();
+    this.foodGeometry.dispose();
     this.renderer.dispose();
   }
 
@@ -124,6 +176,7 @@ export class AquariumRenderer {
         this.scene.remove(actor.root);
         this.disposeObject(actor.root, false);
         this.fishActors.delete(id);
+        this.pendingFeeding.delete(id);
       }
     }
     for (const fish of tank.fish) {
@@ -141,6 +194,7 @@ export class AquariumRenderer {
       };
       this.fishActors.set(fish.id, actor);
       this.scene.add(actor.root);
+      if (this.pendingFeeding.delete(fish.id)) this.triggerFeeding(fish.id);
     }
 
     const plantIds = new Set(tank.plants.map((plant) => plant.id));
@@ -183,6 +237,26 @@ export class AquariumRenderer {
       const height = this.camera.top - this.camera.bottom;
       object.position.y = ((bubble.baseY + time * 0.13 + bubble.phase + height / 2) % height) - height / 2;
     });
+
+    for (let index = this.foodBursts.length - 1; index >= 0; index -= 1) {
+      const burst = this.foodBursts[index];
+      burst.ageSeconds += deltaSeconds;
+      if (burst.ageSeconds >= burst.lifetimeSeconds) {
+        this.scene.remove(burst.root);
+        burst.material.dispose();
+        this.foodBursts.splice(index, 1);
+        continue;
+      }
+      burst.material.opacity = 0.95 * (1 - burst.ageSeconds / burst.lifetimeSeconds);
+      for (const crumb of burst.root.children) {
+        const drift = crumb.userData.foodDrift as { x: number; y: number; z: number };
+        crumb.position.x += drift.x * deltaSeconds;
+        crumb.position.y += drift.y * deltaSeconds;
+        crumb.position.z += drift.z * deltaSeconds;
+        crumb.rotation.x += deltaSeconds * 0.6;
+        crumb.rotation.y += deltaSeconds * 0.8;
+      }
+    }
   }
 
   private createLighting(): void {

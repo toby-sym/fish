@@ -23,6 +23,35 @@ describe("BreedingSystem", () => {
     expect(offspring.parentIds).toEqual([female.id, male.id]);
     expect(offspring.parentSpeciesIds).toEqual(["guppy", "endler"]);
     expect(Number.isFinite(offspring.genome.visual.bodyLength)).toBe(true);
+    expect([female.genome.visual.bodyShape, male.genome.visual.bodyShape]).toContain(offspring.genome.visual.bodyShape);
+    expect([female.genome.visual.tailShape, male.genome.visual.tailShape]).toContain(offspring.genome.visual.tailShape);
+  });
+
+  it("allows the authored tetra group to cross-breed", () => {
+    const neonProfile = speciesById.get("neon-tetra");
+    const cardinalProfile = speciesById.get("cardinal-tetra");
+    if (!neonProfile || !cardinalProfile) throw new Error("Tetra profiles missing.");
+    const female = new Fish({
+      name: "Neon",
+      speciesId: neonProfile.id,
+      speciesName: neonProfile.commonName,
+      compatibilityGroup: neonProfile.compatibilityGroup,
+      genome: createGenome(neonProfile, 17),
+      sex: "female",
+      lifeStage: "adult",
+    });
+    const male = new Fish({
+      name: "Cardinal",
+      speciesId: cardinalProfile.id,
+      speciesName: cardinalProfile.commonName,
+      compatibilityGroup: cardinalProfile.compatibilityGroup,
+      genome: createGenome(cardinalProfile, 29),
+      sex: "male",
+      lifeStage: "adult",
+    });
+
+    expect(system.canBreed(female, male)).toBe(true);
+    expect(system.createOffspring(female, male, speciesById, 42).speciesId).toBe("hybrid");
   });
 
   it("rejects parents from separate compatibility groups", () => {

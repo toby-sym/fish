@@ -31,4 +31,23 @@ describe("FishMotion", () => {
     expect(Math.abs(position.x)).toBeLessThanOrEqual(2.9);
     expect(Math.abs(position.y)).toBeLessThanOrEqual(1.4);
   });
+
+  it("steers a fed fish toward the falling food", () => {
+    const bounds = { width: 14, height: 8, padding: 0.8 };
+    const padding = bounds.padding ?? 0.7;
+    const motion = new FishMotion(912, bounds);
+    const start = motion.update(0, bounds);
+    const target = {
+      x: Math.min(bounds.width / 2 - padding, start.x + 1.3),
+      y: Math.min(bounds.height / 2 - padding, start.y + 0.5),
+      z: start.z,
+    };
+    const initialDistance = Math.hypot(target.x - start.x, target.y - start.y);
+    motion.feedAt(target, bounds);
+
+    let position = start;
+    for (let frame = 0; frame < 45; frame += 1) position = motion.update(1 / 30, bounds);
+
+    expect(Math.hypot(target.x - position.x, target.y - position.y)).toBeLessThan(initialDistance);
+  });
 });
