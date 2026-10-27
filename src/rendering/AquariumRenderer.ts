@@ -36,7 +36,7 @@ export class AquariumRenderer {
     this.renderer = new THREE.WebGLRenderer({
       canvas,
       antialias: true,
-      alpha: false,
+      alpha: true,
       powerPreference: "low-power",
       stencil: false,
     });
@@ -44,8 +44,8 @@ export class AquariumRenderer {
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.18;
-    this.scene.background = new THREE.Color(0x0d4b58);
-    this.scene.fog = new THREE.Fog(0x0d4b58, 13, 30);
+    this.scene.background = null;
+    this.scene.fog = new THREE.Fog(0x0d4b58, 23, 48);
     this.camera.position.set(0, 0, 18);
     this.camera.lookAt(0, 0, 0);
     this.createLighting();
