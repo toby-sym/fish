@@ -246,6 +246,7 @@ function addPlant(speciesId: string): void {
     oxygenProductionPerMinute: profile.oxygenProductionPerMinute,
     visualSeed: profile.visualSeed + Math.floor(Math.random() * 10000),
     colour: profile.colour,
+    growthForm: profile.growthForm,
     position: randomPosition(),
   });
   requireTank().addPlant(plant);

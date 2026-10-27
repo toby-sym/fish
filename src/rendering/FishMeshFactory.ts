@@ -65,11 +65,17 @@ export class FishMeshFactory {
     const depth = visual.bodyDepth;
     const slices = [
       { x: -0.54, y: 0.08, z: 0.07 },
-      { x: -0.29, y: height * 0.67, z: depth * 0.65 },
-      { x: 0.08, y: height, z: depth },
-      { x: 0.37, y: height * 0.7, z: depth * 0.68 },
-      { x: 0.55, y: height * 0.13, z: depth * 0.16 },
+      { x: -0.29, y: 0.67, z: 0.65 },
+      { x: 0.08, y: 1, z: 1 },
+      { x: 0.37, y: 0.7, z: 0.68 },
+      { x: 0.55, y: 0.13, z: 0.16 },
     ];
+    const shape = visual.bodyShape ?? "streamlined";
+    const shapeScale = shape === "elongated"
+      ? { length: 1.1, height: 0.76, depth: 0.78 }
+      : shape === "deep" || shape === "disc"
+        ? { length: shape === "disc" ? 0.91 : 0.96, height: 1.12, depth: 1.06 }
+        : { length: 1, height: 1, depth: 1 };
     const ringSegments = 6;
     const positions: number[] = [];
     const colours: number[] = [];
@@ -78,7 +84,11 @@ export class FishMeshFactory {
     const point = (sliceIndex: number, ringIndex: number): [number, number, number] => {
       const slice = slices[sliceIndex];
       const angle = (ringIndex / ringSegments) * Math.PI * 2;
-      return [slice.x * length, Math.sin(angle) * slice.y, Math.cos(angle) * slice.z];
+      return [
+        slice.x * length * shapeScale.length,
+        Math.sin(angle) * slice.y * height * shapeScale.height,
+        Math.cos(angle) * slice.z * depth * shapeScale.depth,
+      ];
     };
 
     const addTriangle = (a: number[], b: number[], c: number[], colour: number) => {
@@ -94,7 +104,10 @@ export class FishMeshFactory {
         const nextRing = (ringIndex + 1) % ringSegments;
         let colourIndex = random() < 0.22 ? 1 : 0;
         if (visual.pattern === "stripe" && (sliceIndex === 1 || sliceIndex === 3)) colourIndex = 1;
+        if (visual.pattern === "banded" && sliceIndex % 2 === 1) colourIndex = 1;
         if (visual.pattern === "mottled" && random() < 0.27) colourIndex = 2;
+        if (visual.pattern === "speckled" && random() < 0.34) colourIndex = 2;
+        if (visual.pattern === "marbled" && random() < 0.4) colourIndex = random() < 0.5 ? 1 : 2;
         const colour = palette[colourIndex];
         const a = point(sliceIndex, ringIndex);
         const b = point(sliceIndex + 1, ringIndex);
@@ -118,19 +131,31 @@ export class FishMeshFactory {
     tail.position.x = -visual.bodyLength * 0.52;
     const tailLength = 0.45 * visual.tailSize;
     const tailHeight = 0.46 * visual.tailSize;
-    const triangles = [
-      {
-        points: [[0, 0, 0], [-tailLength, tailHeight, 0], [-tailLength * 0.92, 0, 0]] as number[][],
-        colour: visual.secondaryColour,
-      },
-      {
-        points: [[0, 0, 0], [-tailLength * 0.92, 0, 0], [-tailLength, -tailHeight, 0]] as number[][],
-        colour: visual.accentColour,
-      },
-    ];
+    const shape = visual.tailShape ?? (speciesId === "swordtail" ? "sword" : "fan");
+    const triangles = shape === "forked"
+      ? [
+        { points: [[0, 0, 0], [-tailLength, tailHeight * 0.82, 0], [-tailLength * 0.65, 0, 0]] as number[][], colour: visual.secondaryColour },
+        { points: [[0, 0, 0], [-tailLength * 0.65, 0, 0], [-tailLength, -tailHeight * 0.82, 0]] as number[][], colour: visual.accentColour },
+      ]
+      : shape === "lyre"
+        ? [
+          { points: [[0, 0, 0], [-tailLength * 1.08, tailHeight, 0], [-tailLength * 0.62, 0, 0]] as number[][], colour: visual.secondaryColour },
+          { points: [[0, 0, 0], [-tailLength * 0.62, 0, 0], [-tailLength * 1.08, -tailHeight, 0]] as number[][], colour: visual.accentColour },
+        ]
+        : shape === "veil"
+          ? [
+            { points: [[0, 0, 0], [-tailLength, tailHeight, 0], [-tailLength * 0.72, 0, 0]] as number[][], colour: visual.secondaryColour },
+            { points: [[0, 0, 0], [-tailLength * 0.72, 0, 0], [-tailLength, -tailHeight, 0]] as number[][], colour: visual.accentColour },
+            { points: [[0, 0, 0], [-tailLength * 0.82, tailHeight * 0.72, 0.015], [-tailLength * 0.94, 0, 0.015]] as number[][], colour: visual.accentColour },
+            { points: [[0, 0, 0], [-tailLength * 0.94, 0, 0.015], [-tailLength * 0.82, -tailHeight * 0.72, 0.015]] as number[][], colour: visual.secondaryColour },
+          ]
+          : [
+            { points: [[0, 0, 0], [-tailLength, tailHeight, 0], [-tailLength * 0.92, 0, 0]] as number[][], colour: visual.secondaryColour },
+            { points: [[0, 0, 0], [-tailLength * 0.92, 0, 0], [-tailLength, -tailHeight, 0]] as number[][], colour: visual.accentColour },
+          ];
     tail.add(new THREE.Mesh(this.triangleGeometry(triangles), this.finMaterial));
 
-    if (speciesId === "swordtail") {
+    if (shape === "sword") {
       const sword = new THREE.Mesh(
         this.triangleGeometry([{
           points: [[0, -0.04, 0.015], [-tailLength * 1.7, -0.07, 0.015], [0, -0.015, 0.015]],

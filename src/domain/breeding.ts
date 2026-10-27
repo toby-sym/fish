@@ -32,6 +32,12 @@ export class BreedingSystem {
     const parentVisualA = first.genome.visual;
     const parentVisualB = second.genome.visual;
     const visual = {
+      bodyShape: random() < 0.5
+        ? parentVisualA.bodyShape ?? profileA.visual.bodyShape
+        : parentVisualB.bodyShape ?? profileB.visual.bodyShape,
+      tailShape: random() < 0.5
+        ? parentVisualA.tailShape ?? profileA.visual.tailShape
+        : parentVisualB.tailShape ?? profileB.visual.tailShape,
       bodyLength: blend(parentVisualA.bodyLength, parentVisualB.bodyLength, 0.08),
       bodyHeight: blend(parentVisualA.bodyHeight, parentVisualB.bodyHeight, 0.08),
       bodyDepth: blend(parentVisualA.bodyDepth, parentVisualB.bodyDepth, 0.08),

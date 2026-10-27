@@ -34,8 +34,8 @@ export function createStarterTank(): Tank {
       starterFish("endler", "Fern", "female", 2002),
     ],
     plants: [
-      new Plant({ id: "starter-java-fern", name: "Java fern", speciesId: "java-fern", nitrateUptakePerMinute: 0.012, oxygenProductionPerMinute: 0.008, visualSeed: 104, colour: 0x4a966c, position: { x: -3.1, y: 0, z: -0.4 } }),
-      new Plant({ id: "starter-hornwort", name: "Hornwort", speciesId: "hornwort", nitrateUptakePerMinute: 0.018, oxygenProductionPerMinute: 0.012, visualSeed: 312, colour: 0x3f8b63, position: { x: 3, y: 0, z: 0.1 } }),
+      new Plant({ id: "starter-java-fern", name: "Java fern", speciesId: "java-fern", nitrateUptakePerMinute: 0.012, oxygenProductionPerMinute: 0.008, visualSeed: 104, colour: 0x4a966c, growthForm: "fern", position: { x: -3.1, y: 0, z: -0.4 } }),
+      new Plant({ id: "starter-hornwort", name: "Hornwort", speciesId: "hornwort", nitrateUptakePerMinute: 0.018, oxygenProductionPerMinute: 0.012, visualSeed: 312, colour: 0x3f8b63, growthForm: "stem", position: { x: 3, y: 0, z: 0.1 } }),
     ],
     invertebrates: [
       new AquaticInvertebrate({ id: "starter-snail", name: "Pebble", speciesId: snail.id, detritusConsumptionPerMinute: snail.detritusConsumptionPerMinute, wastePerMinute: snail.wastePerMinute, oxygenConsumptionPerMinute: snail.oxygenConsumptionPerMinute, colour: snail.colour, position: { x: 2.4, y: 0.18, z: 0.6 } }),

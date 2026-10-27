@@ -1,5 +1,5 @@
 import { createId } from "./types";
-import type { FishGenome, FishSex, LifeStage, Vec3Data } from "./types";
+import type { FishGenome, FishSex, LifeStage, PlantGrowthForm, Vec3Data } from "./types";
 
 export abstract class AquaticOrganism {
   readonly id: string;
@@ -63,6 +63,7 @@ export interface PlantInit {
   oxygenProductionPerMinute: number;
   visualSeed: number;
   colour: number;
+  growthForm?: PlantGrowthForm;
   position?: Vec3Data;
   health?: number;
   id?: string;
@@ -74,6 +75,7 @@ export class Plant extends AquaticOrganism {
   readonly oxygenProductionPerMinute: number;
   readonly visualSeed: number;
   readonly colour: number;
+  readonly growthForm: PlantGrowthForm;
   position: Vec3Data;
 
   constructor(init: PlantInit) {
@@ -83,6 +85,7 @@ export class Plant extends AquaticOrganism {
     this.oxygenProductionPerMinute = init.oxygenProductionPerMinute;
     this.visualSeed = init.visualSeed;
     this.colour = init.colour;
+    this.growthForm = init.growthForm ?? "fern";
     this.position = { ...(init.position ?? { x: 0, y: 0, z: 0 }) };
   }
 }
