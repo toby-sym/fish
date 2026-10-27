@@ -226,6 +226,19 @@ export const speciesProfiles: SpeciesProfile[] = [
     },
     wastePerMinute: 0.004,
   },
+  {
+    id: "angelfish",
+    commonName: "Freshwater angelfish",
+    familyName: "Pterophyllum scalare",
+    compatibilityGroup: "cichlid",
+    waterNeeds: { ...freshwaterNeeds, temperatureMinC: 24, temperatureMaxC: 30, pHMin: 6, pHMax: 7.8 },
+    visual: {
+      bodyShape: "disc", tailShape: "veil", bodyLength: 0.98, bodyHeight: 0.78, bodyDepth: 0.36,
+      tailSize: 0.58, dorsalFinSize: 0.63, pattern: "banded",
+      primaryColour: 0x8b9ca2, secondaryColour: 0xe8e8d6, accentColour: 0xe6a85d,
+    },
+    wastePerMinute: 0.006,
+  },
 ];
 
 export const plantProfiles: PlantProfile[] = [

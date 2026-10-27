@@ -4,7 +4,7 @@ import { createGenome } from "../domain/random";
 
 describe("procedural organism profiles", () => {
   it("offers species, plants, and invertebrates with distinct visual profiles", () => {
-    expect(speciesProfiles.length).toBeGreaterThanOrEqual(12);
+    expect(speciesProfiles.length).toBeGreaterThanOrEqual(15);
     expect(plantProfiles.length).toBeGreaterThanOrEqual(6);
     expect(invertebrateProfiles.length).toBeGreaterThanOrEqual(4);
     expect(new Set(speciesProfiles.map((profile) => profile.compatibilityGroup)).size).toBeGreaterThan(4);

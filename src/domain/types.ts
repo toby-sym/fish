@@ -4,7 +4,7 @@ export type FishPattern = "solid" | "stripe" | "mottled" | "speckled" | "banded"
 export type FishBodyShape = "streamlined" | "deep" | "disc" | "elongated";
 export type FishTailShape = "fan" | "forked" | "lyre" | "veil" | "sword";
 export type PlantGrowthForm = "fern" | "broad-leaf" | "stem" | "ribbon" | "rosette" | "floating";
-export type CompatibilityGroup = "poecilia" | "xiphophorus" | "tetra" | "danio" | "rasbora" | "barb" | "labyrinth" | "catfish";
+export type CompatibilityGroup = "poecilia" | "xiphophorus" | "tetra" | "danio" | "rasbora" | "barb" | "labyrinth" | "catfish" | "cichlid";
 
 export interface FishVisualTraits {
   bodyShape?: FishBodyShape;

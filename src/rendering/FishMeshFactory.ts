@@ -73,9 +73,11 @@ export class FishMeshFactory {
     const shape = visual.bodyShape ?? "streamlined";
     const shapeScale = shape === "elongated"
       ? { length: 1.1, height: 0.76, depth: 0.78 }
-      : shape === "deep" || shape === "disc"
-        ? { length: shape === "disc" ? 0.91 : 0.96, height: 1.12, depth: 1.06 }
-        : { length: 1, height: 1, depth: 1 };
+      : shape === "disc"
+        ? { length: 0.91, height: 1.28, depth: 0.92 }
+        : shape === "deep"
+          ? { length: 0.96, height: 1.12, depth: 1.06 }
+          : { length: 1, height: 1, depth: 1 };
     const ringSegments = 6;
     const positions: number[] = [];
     const colours: number[] = [];
