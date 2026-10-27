@@ -30,6 +30,12 @@ describe("FishMotion", () => {
 
     expect(Math.abs(position.x)).toBeLessThanOrEqual(2.9);
     expect(Math.abs(position.y)).toBeLessThanOrEqual(1.4);
+
+    let afterSwim = position;
+    for (let frame = 0; frame < 120; frame += 1) afterSwim = motion.update(1 / 30, resized);
+    expect(afterSwim).not.toEqual(position);
+    expect(Math.abs(afterSwim.x)).toBeLessThanOrEqual(2.9);
+    expect(Math.abs(afterSwim.y)).toBeLessThanOrEqual(1.4);
   });
 
   it("steers a fed fish toward the falling food", () => {
