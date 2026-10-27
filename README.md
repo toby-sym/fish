@@ -7,6 +7,7 @@ A full-screen, low-poly freshwater ecosystem for Lively Wallpaper. Fish are indi
 - A full-bleed underwater scene with no visible tank frame, procedural fish, plant beds, a rocky foreground, light shafts, and bubbles.
 - Fifteen fish profiles, including guppies, Endler's livebearers, platies, swordtails, mollies, tetras, danios, rasboras, barbs, bettas, corydoras, and angelfish.
 - Feeding a fish drops a burst of visible food flakes and steers it toward the food.
+- Tetra, danio, rasbora, barb, and corydoras profiles school together, while solitary profiles keep independent routes.
 - Six plant forms and four invertebrate profiles, with profile-driven water needs and ecosystem contributions.
 - An on-demand care panel to select, name, feed, add, and remove fish; add and remove plants and invertebrates; and review or refresh the water chemistry.
 - Manual breeding for healthy adult fish from the same authored compatibility group. Poecilia, Xiphophorus, tetra, and danio profiles each include cross-species pairings.
@@ -32,7 +33,7 @@ pnpm build
 pnpm package
 ```
 
-`pnpm check` is the one-command local verification used before pushing: it runs lint, domain and rendering tests, and a production build. Tests cover ecosystem rules, authored cross-species breeding, profile and phenotype variety, procedural fish silhouettes, and seeded movement across the viewport. For interactive work, run `pnpm dev` and open the local Vite URL printed in the terminal (normally `http://127.0.0.1:5173`). The **Tank care** drawer is in the upper-right corner. This preview works without Lively; use the ZIP steps below to check the wallpaper host itself.
+`pnpm check` is the one-command local verification used before pushing: it runs lint, domain and rendering tests, and a production build. Tests cover ecosystem rules, authored cross-species breeding, profile and phenotype variety, procedural fish silhouettes, schooling, feeding movement, and seeded viewport swimming. For interactive work, run `pnpm dev` and open the local Vite URL printed in the terminal (normally `http://127.0.0.1:5173`). The **Tank care** drawer is in the upper-right corner. This preview works without Lively; use the ZIP steps below to check the wallpaper host itself.
 
 `pnpm package` builds the site and writes `release/aquarium-wallpaper.zip`. The ZIP contains the built page, its local assets, and `LivelyInfo.json`; it does not need a network connection at runtime.
 

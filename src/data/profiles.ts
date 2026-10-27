@@ -17,6 +17,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Guppy",
     familyName: "Poecilia reticulata",
     compatibilityGroup: "poecilia",
+    schooling: false,
     waterNeeds: freshwaterNeeds,
     visual: {
       bodyShape: "streamlined",
@@ -38,6 +39,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Endler's livebearer",
     familyName: "Poecilia wingei",
     compatibilityGroup: "poecilia",
+    schooling: false,
     waterNeeds: freshwaterNeeds,
     visual: {
       bodyShape: "streamlined",
@@ -59,6 +61,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Platy",
     familyName: "Xiphophorus maculatus",
     compatibilityGroup: "xiphophorus",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 21, temperatureMaxC: 27 },
     visual: {
       bodyShape: "deep",
@@ -80,6 +83,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Swordtail",
     familyName: "Xiphophorus hellerii",
     compatibilityGroup: "xiphophorus",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 22, temperatureMaxC: 28 },
     visual: {
       bodyShape: "streamlined",
@@ -101,6 +105,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Black molly",
     familyName: "Poecilia sphenops",
     compatibilityGroup: "poecilia",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 23, temperatureMaxC: 28, pHMin: 7, pHMax: 8.4 },
     visual: {
       bodyShape: "deep", tailShape: "fan", bodyLength: 1.24, bodyHeight: 0.61, bodyDepth: 0.4,
@@ -114,6 +119,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Variatus platy",
     familyName: "Xiphophorus variatus",
     compatibilityGroup: "xiphophorus",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 18, temperatureMaxC: 26 },
     visual: {
       bodyShape: "deep", tailShape: "fan", bodyLength: 1.05, bodyHeight: 0.53, bodyDepth: 0.36,
@@ -127,6 +133,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Neon tetra",
     familyName: "Paracheirodon innesi",
     compatibilityGroup: "tetra",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 21, temperatureMaxC: 26, pHMin: 5.5, pHMax: 7.2 },
     visual: {
       bodyShape: "streamlined", tailShape: "forked", bodyLength: 1.03, bodyHeight: 0.37, bodyDepth: 0.27,
@@ -140,6 +147,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Cardinal tetra",
     familyName: "Paracheirodon axelrodi",
     compatibilityGroup: "tetra",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 23, temperatureMaxC: 28, pHMin: 4.8, pHMax: 6.8 },
     visual: {
       bodyShape: "streamlined", tailShape: "forked", bodyLength: 1.08, bodyHeight: 0.39, bodyDepth: 0.28,
@@ -153,6 +161,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Zebra danio",
     familyName: "Danio rerio",
     compatibilityGroup: "danio",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 18, temperatureMaxC: 25, pHMin: 6.5, pHMax: 8 },
     visual: {
       bodyShape: "elongated", tailShape: "forked", bodyLength: 1.34, bodyHeight: 0.34, bodyDepth: 0.25,
@@ -166,6 +175,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Pearl danio",
     familyName: "Danio albolineatus",
     compatibilityGroup: "danio",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 20, temperatureMaxC: 26 },
     visual: {
       bodyShape: "elongated", tailShape: "lyre", bodyLength: 1.3, bodyHeight: 0.38, bodyDepth: 0.26,
@@ -179,6 +189,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Harlequin rasbora",
     familyName: "Trigonostigma heteromorpha",
     compatibilityGroup: "rasbora",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 22, temperatureMaxC: 28, pHMin: 5.5, pHMax: 7.5 },
     visual: {
       bodyShape: "deep", tailShape: "forked", bodyLength: 1.08, bodyHeight: 0.45, bodyDepth: 0.32,
@@ -192,6 +203,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Cherry barb",
     familyName: "Puntius titteya",
     compatibilityGroup: "barb",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 22, temperatureMaxC: 27, pHMin: 6, pHMax: 7.5 },
     visual: {
       bodyShape: "deep", tailShape: "fan", bodyLength: 1.12, bodyHeight: 0.47, bodyDepth: 0.34,
@@ -205,6 +217,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Siamese fighting fish",
     familyName: "Betta splendens",
     compatibilityGroup: "labyrinth",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 24, temperatureMaxC: 30, pHMin: 6, pHMax: 7.8 },
     visual: {
       bodyShape: "deep", tailShape: "veil", bodyLength: 0.98, bodyHeight: 0.47, bodyDepth: 0.35,
@@ -218,6 +231,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Peppered corydoras",
     familyName: "Corydoras paleatus",
     compatibilityGroup: "catfish",
+    schooling: true,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 20, temperatureMaxC: 26, pHMin: 6, pHMax: 7.8 },
     visual: {
       bodyShape: "deep", tailShape: "fan", bodyLength: 1.08, bodyHeight: 0.42, bodyDepth: 0.4,
@@ -231,6 +245,7 @@ export const speciesProfiles: SpeciesProfile[] = [
     commonName: "Freshwater angelfish",
     familyName: "Pterophyllum scalare",
     compatibilityGroup: "cichlid",
+    schooling: false,
     waterNeeds: { ...freshwaterNeeds, temperatureMinC: 24, temperatureMaxC: 30, pHMin: 6, pHMax: 7.8 },
     visual: {
       bodyShape: "disc", tailShape: "veil", bodyLength: 0.98, bodyHeight: 0.78, bodyDepth: 0.36,

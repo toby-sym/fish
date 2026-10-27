@@ -14,6 +14,11 @@ export interface FishPosition {
   pitch: number;
 }
 
+export interface SchoolCenter {
+  x: number;
+  y: number;
+}
+
 /** Seeded waypoint steering keeps each fish's movement varied and reproducible. */
 export class FishMotion {
   private readonly random: () => number;
@@ -38,7 +43,7 @@ export class FishMotion {
     this.chooseWaypoint(bounds);
   }
 
-  update(deltaSeconds: number, bounds: MotionBounds): FishPosition {
+  update(deltaSeconds: number, bounds: MotionBounds, schoolCenter?: SchoolCenter): FishPosition {
     const maxX = this.axisLimit(bounds.width, bounds.padding ?? 0.7);
     const maxY = this.axisLimit(bounds.height, bounds.padding ?? 0.7);
     this.position.x = clamp(this.position.x, -maxX, maxX);
@@ -63,8 +68,15 @@ export class FishMotion {
       if (this.waypointTimer <= 0 || Math.hypot(dx, dy) < 0.18) this.chooseWaypoint(bounds);
     }
 
-    const targetX = this.target.x - this.position.x;
-    const targetY = this.target.y - this.position.y;
+    const schoolFactor = schoolCenter && !this.foodTarget ? 0.28 : 1;
+    const aimX = schoolCenter && !this.foodTarget
+      ? schoolCenter.x + (this.target.x - schoolCenter.x) * schoolFactor
+      : this.target.x;
+    const aimY = schoolCenter && !this.foodTarget
+      ? schoolCenter.y + (this.target.y - schoolCenter.y) * schoolFactor
+      : this.target.y;
+    const targetX = aimX - this.position.x;
+    const targetY = aimY - this.position.y;
     const distance = Math.max(0.001, Math.hypot(targetX, targetY));
     const speed = this.speed * Math.min(1, distance / 0.75);
     const steering = Math.min(1, delta * 1.8);

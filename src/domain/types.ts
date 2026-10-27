@@ -39,6 +39,7 @@ export interface SpeciesProfile {
   commonName: string;
   familyName: string;
   compatibilityGroup: CompatibilityGroup;
+  schooling?: boolean;
   waterNeeds: WaterNeeds;
   visual: SpeciesVisualProfile;
   wastePerMinute: number;

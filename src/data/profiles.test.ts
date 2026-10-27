@@ -8,6 +8,8 @@ describe("procedural organism profiles", () => {
     expect(plantProfiles.length).toBeGreaterThanOrEqual(6);
     expect(invertebrateProfiles.length).toBeGreaterThanOrEqual(4);
     expect(new Set(speciesProfiles.map((profile) => profile.compatibilityGroup)).size).toBeGreaterThan(4);
+    expect(speciesProfiles.find((profile) => profile.id === "neon-tetra")?.schooling).toBe(true);
+    expect(speciesProfiles.find((profile) => profile.id === "betta")?.schooling).toBe(false);
     expect(speciesProfiles.some((profile) => profile.visual.tailShape === "veil")).toBe(true);
     expect(speciesProfiles.some((profile) => profile.visual.tailShape === "forked")).toBe(true);
     expect(new Set(plantProfiles.map((profile) => profile.growthForm)).size).toBeGreaterThan(3);

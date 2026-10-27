@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { speciesById } from "../data/profiles";
 import type { AquaticInvertebrate, Fish, Plant } from "../domain/entities";
 import { seededRandom } from "../domain/random";
 import type { Tank } from "../domain/tank";
@@ -10,6 +11,7 @@ interface FishActor {
   root: THREE.Group;
   tail: THREE.Group;
   motion: FishMotion;
+  schoolGroup: string | null;
 }
 
 interface FoodBurst {
@@ -191,6 +193,7 @@ export class AquariumRenderer {
         root: visual.root,
         tail: visual.tail,
         motion: new FishMotion(fish.genome.visual.seed, this.screenBounds()),
+        schoolGroup: schoolingGroup(fish.speciesId, fish.genome.lineageSpeciesIds, fish.compatibilityGroup),
       };
       this.fishActors.set(fish.id, actor);
       this.scene.add(actor.root);
@@ -217,8 +220,28 @@ export class AquariumRenderer {
   }
 
   private animateActors(time: number, deltaSeconds: number): void {
+    const schools = new Map<string, { x: number; y: number; count: number }>();
     for (const actor of this.fishActors.values()) {
-      const position = actor.motion.update(deltaSeconds, this.screenBounds(actor.fish.genome.visual.bodyLength * 0.7 + actor.fish.genome.visual.tailSize * 0.4));
+      if (!actor.schoolGroup) continue;
+      const school = schools.get(actor.schoolGroup) ?? { x: 0, y: 0, count: 0 };
+      school.x += actor.root.position.x;
+      school.y += actor.root.position.y;
+      school.count += 1;
+      schools.set(actor.schoolGroup, school);
+    }
+    for (const school of schools.values()) {
+      school.x /= school.count;
+      school.y /= school.count;
+    }
+
+    for (const actor of this.fishActors.values()) {
+      const school = actor.schoolGroup ? schools.get(actor.schoolGroup) : undefined;
+      const schoolCenter = school && school.count > 1 ? school : undefined;
+      const position = actor.motion.update(
+        deltaSeconds,
+        this.screenBounds(actor.fish.genome.visual.bodyLength * 0.7 + actor.fish.genome.visual.tailSize * 0.4),
+        schoolCenter,
+      );
       const scale = actor.fish.id === this.selectedFishId ? 1.12 : 1;
       const ageScale = actor.fish.lifeStage === "juvenile" ? 0.58 : 1;
       actor.root.position.set(position.x, position.y, position.z);
@@ -442,4 +465,9 @@ export class AquariumRenderer {
       materials.forEach((material) => material.dispose());
     });
   }
+}
+
+function schoolingGroup(speciesId: string, lineageSpeciesIds: string[], compatibilityGroup: string): string | null {
+  const sourceSpeciesId = speciesId === "hybrid" ? lineageSpeciesIds[0] ?? speciesId : speciesId;
+  return speciesById.get(sourceSpeciesId)?.schooling ? compatibilityGroup : null;
 }

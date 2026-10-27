@@ -50,4 +50,22 @@ describe("FishMotion", () => {
 
     expect(Math.hypot(target.x - position.x, target.y - position.y)).toBeLessThan(initialDistance);
   });
+
+  it("keeps schooling fish more cohesive than solitary swimmers", () => {
+    const bounds = { width: 22, height: 10, padding: 0.8 };
+    const seeds = [71, 93, 145, 201];
+    const school = seeds.map((seed) => new FishMotion(seed, bounds));
+    const solitary = seeds.map((seed) => new FishMotion(seed, bounds));
+
+    for (let frame = 0; frame < 900; frame += 1) {
+      for (const fish of school) fish.update(1 / 30, bounds, { x: 0, y: 0 });
+      for (const fish of solitary) fish.update(1 / 30, bounds);
+    }
+
+    const averageDistance = (fish: FishMotion[]) => fish.reduce((total, member) => {
+      const position = member.update(0, bounds);
+      return total + Math.hypot(position.x, position.y) / fish.length;
+    }, 0);
+    expect(averageDistance(school)).toBeLessThan(averageDistance(solitary));
+  });
 });
