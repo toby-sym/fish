@@ -1,12 +1,14 @@
 # Aquarium Wallpaper
 
-A small, low-poly freshwater ecosystem for Lively Wallpaper. Fish are individual TypeScript objects rendered from procedural Three.js geometry. Species profiles provide the starting shape, colour, water needs, and compatibility group; seeded traits vary the appearance of each fish.
+A full-screen, low-poly freshwater ecosystem for Lively Wallpaper. Fish are individual TypeScript objects rendered from procedural Three.js geometry. Seeded phenotypes vary their body shape, tail shape, colour palette, and markings; waypoint steering lets them explore the available screen area.
 
 ## What is in this skeleton
 
-- A procedural 3D tank with fish, plants, a snail, shrimp, pebbles, and bubbles.
+- A full-bleed underwater scene with no visible tank frame, procedural fish, plant beds, a rocky foreground, light shafts, and bubbles.
+- Fifteen fish profiles, including guppies, Endler's livebearers, platies, swordtails, mollies, tetras, danios, rasboras, barbs, bettas, corydoras, and angelfish.
+- Six plant forms and four invertebrate profiles, with profile-driven water needs and ecosystem contributions.
 - An on-demand care panel to select, name, feed, add, and remove fish; add and remove plants and invertebrates; and review or refresh the water chemistry.
-- Manual breeding for healthy adult fish from the same authored compatibility group. The starter group includes guppies and Endler's livebearers, with platies and swordtails defined for later additions.
+- Manual breeding for healthy adult fish from the same authored compatibility group. Poecilia, Xiphophorus, tetra, and danio profiles each include cross-species pairings.
 - A starter ecosystem simulation for waste, filtration, plant uptake, oxygen, hunger, and fish health. The coefficients are placeholders for future balancing.
 - Versioned IndexedDB saves for the tank and its organisms.
 
@@ -29,7 +31,7 @@ pnpm build
 pnpm package
 ```
 
-`pnpm check` is the one-command local verification used before pushing: it runs lint, the domain tests, and a production build. For interactive work, run `pnpm dev` and open the local Vite URL printed in the terminal (normally `http://127.0.0.1:5173`). The tank-care drawer is available from the upper-right **Tank care** button. This preview works without Lively; use the ZIP steps below to check the wallpaper host itself.
+`pnpm check` is the one-command local verification used before pushing: it runs lint, domain and rendering tests, and a production build. Tests cover ecosystem rules, profile and phenotype variety, procedural fish silhouettes, and seeded movement across the viewport. For interactive work, run `pnpm dev` and open the local Vite URL printed in the terminal (normally `http://127.0.0.1:5173`). The **Tank care** drawer is in the upper-right corner. This preview works without Lively; use the ZIP steps below to check the wallpaper host itself.
 
 `pnpm package` builds the site and writes `release/aquarium-wallpaper.zip`. The ZIP contains the built page, its local assets, and `LivelyInfo.json`; it does not need a network connection at runtime.
 
@@ -61,4 +63,4 @@ scripts/       Lively ZIP packaging
 
 ## Current limitations
 
-This is an architectural skeleton, not a balanced aquarium simulator. The chemistry and health rules are intentionally simple, plant care and fish mortality are not modelled, and breeding is a manual one-click action that creates a single juvenile. The UI has no detailed inventory or settings system yet. Lively import and IndexedDB persistence still need a smoke check in the packaged WebView2 wallpaper runtime.
+This is an architectural skeleton, not a balanced aquarium simulator. The chemistry and health rules are intentionally simple, plant care and fish mortality are not modelled, and breeding is a manual one-click action that creates a single juvenile. The UI has no detailed inventory or settings system yet. Lively import, pause handling, and IndexedDB persistence still need a smoke check in the packaged WebView2 wallpaper runtime.
