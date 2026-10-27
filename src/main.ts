@@ -213,7 +213,7 @@ async function saveTank(): Promise<void> {
 }
 
 function randomPosition(): { x: number; y: number; z: number } {
-  return { x: (Math.random() - 0.5) * 7, y: 0, z: (Math.random() - 0.5) * 2.6 };
+  return { x: (Math.random() - 0.5) * 15, y: 0, z: (Math.random() - 0.5) * 2.6 };
 }
 
 function addFish(speciesId: string): void {
