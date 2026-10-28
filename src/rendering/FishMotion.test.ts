@@ -57,6 +57,26 @@ describe("FishMotion", () => {
     expect(Math.hypot(target.x - position.x, target.y - position.y)).toBeLessThan(initialDistance);
   });
 
+  it("tilts upward in the direction each fish is actually facing", () => {
+    const bounds = { width: 18, height: 10, padding: 0.8 };
+    const rightward = new FishMotion(123, bounds);
+    const leftward = new FishMotion(456, bounds);
+    rightward.feedAt({ x: 20, y: 8, z: 0 }, bounds);
+    leftward.feedAt({ x: -20, y: 8, z: 0 }, bounds);
+
+    let rightPosition = rightward.update(0.2, bounds);
+    let leftPosition = leftward.update(0.2, bounds);
+    for (let frame = 0; frame < 18; frame += 1) {
+      rightPosition = rightward.update(0.2, bounds);
+      leftPosition = leftward.update(0.2, bounds);
+    }
+
+    expect(rightPosition.direction).toBe(1);
+    expect(leftPosition.direction).toBe(-1);
+    expect(rightPosition.pitch).toBeGreaterThan(0);
+    expect(leftPosition.pitch).toBeLessThan(0);
+  });
+
   it("keeps schooling fish more cohesive than solitary swimmers", () => {
     const bounds = { width: 22, height: 10, padding: 0.8 };
     const seeds = [71, 93, 145, 201];

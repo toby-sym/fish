@@ -86,7 +86,11 @@ export class FishMotion {
     this.position.y = clamp(this.position.y + this.velocityY * delta, -maxY, maxY);
     this.position.z += (this.target.z - this.position.z) * Math.min(1, delta * 0.35);
     if (Math.abs(this.velocityX) > 0.025) this.position.direction = this.velocityX < 0 ? -1 : 1;
-    this.position.pitch = clamp(Math.atan2(this.velocityY, Math.max(0.08, Math.abs(this.velocityX))) * 0.42, -0.2, 0.2);
+    this.position.pitch = clamp(
+      Math.atan2(this.velocityY, Math.max(0.08, Math.abs(this.velocityX))) * 0.42 * this.position.direction,
+      -0.2,
+      0.2,
+    );
 
     if (!this.foodTarget && (Math.abs(this.target.x) > maxX || Math.abs(this.target.y) > maxY)) {
       this.chooseWaypoint(bounds);
