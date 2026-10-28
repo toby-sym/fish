@@ -4,6 +4,7 @@ import type { AquaticInvertebrate, Fish, Plant } from "../domain/entities";
 import { seededRandom } from "../domain/random";
 import type { Tank } from "../domain/tank";
 import { FishMeshFactory } from "./FishMeshFactory";
+import { AnimationClock } from "./AnimationClock";
 import { feedingSurfaceTarget } from "./FoodMotion";
 import { InvertebrateMotion } from "./InvertebrateMotion";
 import { FishMotion } from "./FishMotion";
@@ -42,6 +43,7 @@ export class AquariumRenderer {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-8, 8, 5, -5, 0.1, 60);
   private readonly fishFactory = new FishMeshFactory();
+  private readonly animationClock = new AnimationClock();
   private readonly plantFactory = new PlantMeshFactory();
   private readonly foodGeometry = new THREE.CircleGeometry(0.045, 5);
   private readonly fishActors = new Map<string, FishActor>();
@@ -176,9 +178,10 @@ export class AquariumRenderer {
       : 0;
     this.lastFrameTime = timestamp;
     this.onFrame(deltaSeconds);
+    const animationTime = this.animationClock.advance(deltaSeconds);
     const tank = this.getTank();
     this.syncActors(tank);
-    this.animateActors(timestamp / 1000, deltaSeconds);
+    this.animateActors(animationTime, deltaSeconds);
     this.renderer.render(this.scene, this.camera);
   };
 
