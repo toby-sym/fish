@@ -95,15 +95,38 @@ function refreshFishOptions(): void {
 function refreshParentOptions(): void {
   if (!tank) return;
   const females = tank.fish.filter((fish) => fish.sex === "female" && fish.lifeStage === "adult");
-  const males = tank.fish.filter((fish) => fish.sex === "male" && fish.lifeStage === "adult");
+  const adultMales = tank.fish.filter((fish) => fish.sex === "male" && fish.lifeStage === "adult");
   const femaleSelect = byId<HTMLSelectElement>("parent-a");
   const maleSelect = byId<HTMLSelectElement>("parent-b");
   const priorFemale = femaleSelect.value;
   const priorMale = maleSelect.value;
   populateOptions(femaleSelect, females.map((fish) => [fish.id, `${fish.name} · ${fish.speciesName}`]));
-  populateOptions(maleSelect, males.map((fish) => [fish.id, `${fish.name} · ${fish.speciesName}`]));
-  if (females.some((fish) => fish.id === priorFemale)) femaleSelect.value = priorFemale;
-  if (males.some((fish) => fish.id === priorMale)) maleSelect.value = priorMale;
+  const selectedFemale = females.find((fish) => fish.id === priorFemale) ?? females[0];
+  femaleSelect.value = selectedFemale?.id ?? "";
+  const compatibleMales = selectedFemale
+    ? adultMales.filter((fish) => fish.compatibilityGroup === selectedFemale.compatibilityGroup)
+    : [];
+  populateOptions(maleSelect, compatibleMales.map((fish) => [fish.id, `${fish.name} · ${fish.speciesName}`]));
+  maleSelect.value = compatibleMales.some((fish) => fish.id === priorMale)
+    ? priorMale
+    : compatibleMales[0]?.id ?? "";
+  refreshBreedingAvailability();
+}
+
+function refreshBreedingAvailability(): void {
+  const female = tank?.fish.find((fish) => fish.id === byId<HTMLSelectElement>("parent-a").value);
+  const male = tank?.fish.find((fish) => fish.id === byId<HTMLSelectElement>("parent-b").value);
+  const available = Boolean(female && male && breeding.canBreed(female, male));
+  byId<HTMLButtonElement>("breed-fish").disabled = !available;
+
+  const status = byId<HTMLElement>("breeding-status");
+  if (available) {
+    status.textContent = "Healthy compatible pair ready.";
+  } else if (!female || !male) {
+    status.textContent = "Add an adult female and male from a compatible group.";
+  } else {
+    status.textContent = "Both fish need at least 55% health to breed.";
+  }
 }
 
 function refreshFishDetails(): void {
@@ -120,6 +143,7 @@ function refreshFishDetails(): void {
   if (document.activeElement !== fishName) fishName.value = fish.name;
   const sex = fish.sex === "unknown" ? "unknown sex" : fish.sex;
   fishDetails.textContent = `${fish.speciesName} · ${sex} · health ${Math.round(fish.health)}% · hunger ${Math.round(fish.hunger)}%`;
+  refreshBreedingAvailability();
 }
 
 function refreshReadings(): void {
@@ -289,6 +313,8 @@ byId<HTMLButtonElement>("panel-close").addEventListener("click", () => {
   toggleButton.setAttribute("aria-expanded", "false");
 });
 fishSelect.addEventListener("change", () => selectFish(fishSelect.value || null));
+byId<HTMLSelectElement>("parent-a").addEventListener("change", refreshParentOptions);
+byId<HTMLSelectElement>("parent-b").addEventListener("change", refreshBreedingAvailability);
 byId<HTMLButtonElement>("rename-fish").addEventListener("click", () => perform(() => {
   const fish = selectedFish();
   if (!fish) return;

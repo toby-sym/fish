@@ -101,6 +101,7 @@ select option { background: #102e34; }
 .add-row { margin-top: 13px; }
 .breed-box { margin-top: 15px; padding: 12px; border: 1px solid var(--line); border-radius: 12px; background: rgb(255 255 255 / 3%); }
 .subheading { margin: 0 0 8px; color: #cce1d8; font-size: 0.7rem; font-weight: 700; }
+.breeding-status { min-height: 1.5em; margin: 8px 0 0; color: var(--muted); font-size: 0.64rem; line-height: 1.4; }
 .full-width { width: 100%; margin-top: 10px; }
 .text-button { padding: 4px 0 4px 8px; border: 0; background: none; color: var(--mint); font-size: 0.68rem; font-weight: 700; cursor: pointer; }
 .readings-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; margin: 0; }
