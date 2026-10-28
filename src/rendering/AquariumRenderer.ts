@@ -213,14 +213,15 @@ export class AquariumRenderer {
     }
 
     const plantIds = new Set(tank.plants.map((plant) => plant.id));
-    this.removeMissingActors(this.plantActors, plantIds);
+    let plantLayoutChanged = this.removeMissingActors(this.plantActors, plantIds);
     for (const plant of tank.plants) {
       if (this.plantActors.has(plant.id)) continue;
       const actor = this.createPlantVisual(plant);
       this.plantActors.set(plant.id, actor);
       this.scene.add(actor);
+      plantLayoutChanged = true;
     }
-    this.layoutPlantActors();
+    if (plantLayoutChanged) this.layoutPlantActors();
 
     const invertebrateIds = new Set(tank.invertebrates.map((item) => item.id));
     for (const [id, actor] of this.invertebrateActors) {
@@ -565,13 +566,16 @@ export class AquariumRenderer {
     this.onFishSelected(selected ?? null);
   };
 
-  private removeMissingActors(actors: Map<string, THREE.Group>, liveIds: Set<string>): void {
+  private removeMissingActors(actors: Map<string, THREE.Group>, liveIds: Set<string>): boolean {
+    let removed = false;
     for (const [id, actor] of actors) {
       if (liveIds.has(id)) continue;
       this.scene.remove(actor);
       this.disposeObject(actor);
       actors.delete(id);
+      removed = true;
     }
+    return removed;
   }
 
   private resize(): void {
