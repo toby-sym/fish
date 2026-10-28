@@ -41,6 +41,21 @@ interface InvertebrateActor {
   phase: number;
 }
 
+interface PebbleRecord {
+  horizontalFraction: number;
+  transform: THREE.Object3D;
+}
+
+interface BubbleRecord {
+  baseXFraction: number;
+  baseYFraction: number;
+  phase: number;
+  riseSpeed: number;
+  swayWidth: number;
+  radius: number;
+  z: number;
+}
+
 const FRAME_INTERVAL_MS = 1000 / 30;
 
 export class AquariumRenderer {
@@ -54,7 +69,12 @@ export class AquariumRenderer {
   private readonly fishActors = new Map<string, FishActor>();
   private readonly plantActors = new Map<string, THREE.Group>();
   private readonly invertebrateActors = new Map<string, InvertebrateActor>();
+  private readonly pebbleRecords: PebbleRecord[] = [];
+  private readonly bubbleRecords: BubbleRecord[] = [];
+  private readonly instanceTransform = new THREE.Object3D();
   private readonly foodBursts: FoodBurst[] = [];
+  private pebbleInstances?: THREE.InstancedMesh;
+  private bubbleInstances?: THREE.InstancedMesh;
   private readonly pendingFeeding = new Set<string>();
   private readonly raycaster = new THREE.Raycaster();
   private readonly pointer = new THREE.Vector2();
@@ -307,20 +327,7 @@ export class AquariumRenderer {
       });
     }
 
-    this.scene.traverse((object) => {
-      const bubble = object.userData.bubble as {
-        baseXFraction: number;
-        baseYFraction: number;
-        phase: number;
-        riseSpeed: number;
-        swayWidth: number;
-      } | undefined;
-      if (!bubble) return;
-      const height = this.camera.top - this.camera.bottom;
-      const width = this.camera.right - this.camera.left;
-      object.position.y = ((bubble.baseYFraction * height + time * bubble.riseSpeed + bubble.phase + height / 2) % height) - height / 2;
-      object.position.x = bubble.baseXFraction * width + Math.sin(time * 0.42 + bubble.phase) * bubble.swayWidth;
-    });
+    this.updateBubbleInstances(time);
 
     for (let index = this.foodBursts.length - 1; index >= 0; index -= 1) {
       const burst = this.foodBursts[index];
@@ -383,38 +390,87 @@ export class AquariumRenderer {
     this.createSubstrate();
 
     const random = seededRandom(117);
-    const pebblePalette = [0x758775, 0x84927c, 0x71847b, 0x9a927a, 0x687e73];
-    for (let index = 0; index < 42; index += 1) {
-      const size = 0.075 + random() * 0.12;
-      const material = new THREE.MeshStandardMaterial({ color: pebblePalette[Math.floor(random() * pebblePalette.length)], roughness: 0.95 });
-      const pebble = new THREE.Mesh(new THREE.SphereGeometry(size, 9, 6), material);
-      pebble.scale.set(1.1 + random() * 0.7, 0.55 + random() * 0.45, 0.7 + random() * 0.55);
-      const horizontalFraction = random() - 0.5;
-      pebble.position.set(horizontalFraction * (this.camera.right - this.camera.left), -4.62 + random() * 0.14, 1.1 + random() * 0.55);
-      pebble.userData.viewportXFraction = horizontalFraction;
-      pebble.rotation.set(random(), random(), random());
-      this.scene.add(pebble);
-    }
+    this.createPebbleInstances(random);
+    this.createBubbleInstances(random);
+  }
 
-    const bubbleMaterial = new THREE.MeshBasicMaterial({ color: 0xd5f1ec, transparent: true, opacity: 0.32 });
-    for (let index = 0; index < 26; index += 1) {
-      const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.025 + random() * 0.025, 5, 4), bubbleMaterial);
+  private createPebbleInstances(random: () => number): void {
+    const palette = [0x758775, 0x84927c, 0x71847b, 0x9a927a, 0x687e73];
+    const instances = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(1, 9, 6),
+      new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.95, flatShading: true }),
+      42,
+    );
+    for (let index = 0; index < 42; index += 1) {
       const horizontalFraction = random() - 0.5;
-      const verticalFraction = random() - 0.5;
-      bubble.position.set(
-        horizontalFraction * (this.camera.right - this.camera.left),
-        verticalFraction * (this.camera.top - this.camera.bottom),
-        -1.2 + random() * 2.4,
+      const size = 0.075 + random() * 0.12;
+      const transform = new THREE.Object3D();
+      transform.position.set(horizontalFraction * (this.camera.right - this.camera.left), -4.62 + random() * 0.14, 1.1 + random() * 0.55);
+      transform.scale.set(
+        size * (1.1 + random() * 0.7),
+        size * (0.55 + random() * 0.45),
+        size * (0.7 + random() * 0.55),
       );
-      bubble.userData.bubble = {
-        baseXFraction: horizontalFraction,
-        baseYFraction: verticalFraction,
+      transform.rotation.set(random(), random(), random());
+      transform.updateMatrix();
+      instances.setMatrixAt(index, transform.matrix);
+      instances.setColorAt(index, new THREE.Color(palette[Math.floor(random() * palette.length)]));
+      this.pebbleRecords.push({ horizontalFraction, transform });
+    }
+    instances.instanceMatrix.needsUpdate = true;
+    if (instances.instanceColor) instances.instanceColor.needsUpdate = true;
+    this.pebbleInstances = instances;
+    this.scene.add(instances);
+  }
+
+  private createBubbleInstances(random: () => number): void {
+    const instances = new THREE.InstancedMesh(
+      new THREE.SphereGeometry(1, 5, 4),
+      new THREE.MeshBasicMaterial({ color: 0xd5f1ec, transparent: true, opacity: 0.32, depthWrite: false }),
+      26,
+    );
+    instances.frustumCulled = false;
+    for (let index = 0; index < 26; index += 1) {
+      this.bubbleRecords.push({
+        baseXFraction: random() - 0.5,
+        baseYFraction: random() - 0.5,
         phase: random() * Math.PI * 2,
         riseSpeed: 0.07 + random() * 0.11,
         swayWidth: 0.035 + random() * 0.11,
-      };
-      this.scene.add(bubble);
+        radius: 0.025 + random() * 0.025,
+        z: -1.2 + random() * 2.4,
+      });
     }
+    this.bubbleInstances = instances;
+    this.scene.add(instances);
+    this.updateBubbleInstances(0);
+  }
+
+  private updateBubbleInstances(time: number): void {
+    if (!this.bubbleInstances) return;
+    const width = this.camera.right - this.camera.left;
+    const height = this.camera.top - this.camera.bottom;
+    this.bubbleRecords.forEach((bubble, index) => {
+      const y = ((bubble.baseYFraction * height + time * bubble.riseSpeed + bubble.phase + height / 2) % height) - height / 2;
+      const x = bubble.baseXFraction * width + Math.sin(time * 0.42 + bubble.phase) * bubble.swayWidth;
+      this.instanceTransform.position.set(x, y, bubble.z);
+      this.instanceTransform.scale.setScalar(bubble.radius);
+      this.instanceTransform.updateMatrix();
+      this.bubbleInstances?.setMatrixAt(index, this.instanceTransform.matrix);
+    });
+    this.bubbleInstances.instanceMatrix.needsUpdate = true;
+  }
+
+  private updatePebbleInstances(): void {
+    if (!this.pebbleInstances) return;
+    const width = this.camera.right - this.camera.left;
+    this.pebbleRecords.forEach((record, index) => {
+      record.transform.position.x = record.horizontalFraction * width;
+      record.transform.updateMatrix();
+      this.pebbleInstances?.setMatrixAt(index, record.transform.matrix);
+    });
+    this.pebbleInstances.instanceMatrix.needsUpdate = true;
+    this.pebbleInstances.computeBoundingSphere();
   }
 
   private createPlantVisual(plant: Plant): THREE.Group {
@@ -632,6 +688,7 @@ export class AquariumRenderer {
       const horizontalFraction = object.userData.viewportXFraction as number | undefined;
       if (horizontalFraction !== undefined) object.position.x = horizontalFraction * viewWidth;
     });
+    this.updatePebbleInstances();
     this.layoutPlantActors();
   }
 
