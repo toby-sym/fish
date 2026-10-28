@@ -12,6 +12,9 @@ export function createGenome(profile: SpeciesProfile, seed: number): FishGenome 
   const random = seededRandom(seed);
   const visual = profile.visual;
   const variation = (amount: number) => 1 + (random() - 0.5) * amount;
+  const paletteHueShift = (random() - 0.5) * 0.045;
+  const paletteSaturation = 0.72 + random() * 0.12;
+  const paletteLightness = 0.035 + (random() - 0.5) * 0.035;
   const patterns = ["solid", "stripe", "mottled", "speckled", "banded", "marbled"] as const;
   const phenotypeRandom = seededRandom(mixSeed(seed));
   const pattern = phenotypeRandom() < 0.62
@@ -27,9 +30,9 @@ export function createGenome(profile: SpeciesProfile, seed: number): FishGenome 
       bodyDepth: visual.bodyDepth * variation(0.12),
       tailSize: visual.tailSize * variation(0.2),
       dorsalFinSize: visual.dorsalFinSize * variation(0.18),
-      primaryColour: varyColour(visual.primaryColour, random),
-      secondaryColour: varyColour(visual.secondaryColour, random),
-      accentColour: varyColour(visual.accentColour, random),
+      primaryColour: varyColour(visual.primaryColour, random, paletteHueShift, paletteSaturation, paletteLightness),
+      secondaryColour: varyColour(visual.secondaryColour, random, paletteHueShift, paletteSaturation, paletteLightness),
+      accentColour: varyColour(visual.accentColour, random, paletteHueShift, paletteSaturation, paletteLightness),
       seed: Math.floor(random() * 0xffffffff),
     },
     lineageSpeciesIds: [profile.id],
@@ -46,7 +49,13 @@ function mixSeed(seed: number): number {
   return value >>> 0;
 }
 
-function varyColour(colour: number, random: () => number): number {
+function varyColour(
+  colour: number,
+  random: () => number,
+  paletteHueShift: number,
+  paletteSaturation: number,
+  paletteLightness: number,
+): number {
   const red = ((colour >> 16) & 0xff) / 255;
   const green = ((colour >> 8) & 0xff) / 255;
   const blue = (colour & 0xff) / 255;
@@ -65,9 +74,9 @@ function varyColour(colour: number, random: () => number): number {
     hue /= 6;
   }
 
-  hue = (hue + 1 + (random() - 0.5) * 0.1) % 1;
-  saturation = clamp(saturation * (0.88 + random() * 0.24), 0.3, 1);
-  const variedLightness = clamp(lightness * (0.88 + random() * 0.24), 0.12, 0.88);
+  hue = (hue + 1 + paletteHueShift + (random() - 0.5) * 0.012) % 1;
+  saturation = clamp(saturation * paletteSaturation * (0.97 + random() * 0.06), 0.22, 0.82);
+  const variedLightness = clamp(lightness + paletteLightness + (random() - 0.5) * 0.025, 0.18, 0.88);
   const chroma = (1 - Math.abs(2 * variedLightness - 1)) * saturation;
   const sector = hue * 6;
   const secondary = chroma * (1 - Math.abs((sector % 2) - 1));

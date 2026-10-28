@@ -6,22 +6,47 @@ import { createGenome } from "../domain/random";
 import { FishMeshFactory } from "./FishMeshFactory";
 
 describe("FishMeshFactory", () => {
-  it("builds different low-poly tail shapes from profile traits", () => {
+  it("builds faceted bodies and curved profile-specific fins", () => {
     const factory = new FishMeshFactory();
     const guppy = factory.create(makeFish("guppy", 11));
     const tetra = factory.create(makeFish("neon-tetra", 22));
     const swordtail = factory.create(makeFish("swordtail", 33));
 
+    const body = (root: THREE.Group) => root.children[0] as THREE.Mesh;
     const fin = (root: THREE.Group) => root.children[0] as THREE.Mesh;
-    expect(fin(guppy.tail).geometry.getAttribute("position").count).toBe(12);
-    expect(fin(tetra.tail).geometry.getAttribute("position").count).toBe(6);
+    expect(body(guppy.root).geometry.index).not.toBeNull();
+    expect(body(guppy.root).geometry.getAttribute("position").count).toBe(150);
+    expect((body(guppy.root).material as THREE.MeshStandardMaterial).flatShading).toBe(true);
+    expect(fin(guppy.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
+    expect(fin(tetra.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
+    const finDepth = fin(guppy.tail).geometry.getAttribute("position");
+    const depths = Array.from({ length: finDepth.count }, (_, index) => finDepth.getZ(index));
+    expect(Math.max(...depths) - Math.min(...depths)).toBeGreaterThan(0.02);
+    fin(guppy.tail).geometry.computeBoundingBox();
+    fin(tetra.tail).geometry.computeBoundingBox();
+    expect(fin(guppy.tail).geometry.boundingBox?.max.y).toBeGreaterThan(fin(tetra.tail).geometry.boundingBox?.max.y ?? 0);
     expect(swordtail.tail.children).toHaveLength(2);
+    expect(guppy.pectoralFins).toHaveLength(2);
 
     for (const root of [guppy.root, tetra.root, swordtail.root]) {
       root.traverse((object) => {
         if (object instanceof THREE.Mesh) object.geometry.dispose();
       });
     }
+    factory.dispose();
+  });
+
+  it("leaves juvenile sizing to the renderer lifecycle scale", () => {
+    const factory = new FishMeshFactory();
+    const juvenile = makeFish("guppy", 44);
+    juvenile.lifeStage = "juvenile";
+
+    const visual = factory.create(juvenile);
+
+    expect(visual.root.scale.toArray()).toEqual([1, 1, 1]);
+    visual.root.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.geometry.dispose();
+    });
     factory.dispose();
   });
 });

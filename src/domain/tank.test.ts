@@ -2,6 +2,13 @@ import { describe, expect, it } from "vitest";
 import { createStarterTank } from "../data/starterTank";
 
 describe("Tank", () => {
+  it("starts with rooted and floating plant forms", () => {
+    const growthForms = createStarterTank().plants.map((plant) => plant.growthForm);
+
+    expect(growthForms).toContain("ribbon");
+    expect(growthForms).toContain("floating");
+  });
+
   it("feeds and renames an individual fish", () => {
     const tank = createStarterTank();
     const fish = tank.fish[0];

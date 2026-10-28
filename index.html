@@ -9,10 +9,6 @@
   <body>
     <main id="aquarium" aria-label="A low-poly freshwater aquarium">
       <canvas id="aquarium-canvas" aria-label="Animated low-poly aquarium. Click a fish to select it."></canvas>
-      <div class="scene-caption" aria-hidden="true">
-        <span class="eyebrow">Freshwater habitat</span>
-        <strong>A quieter kind of desktop</strong>
-      </div>
       <button id="panel-toggle" class="panel-toggle" type="button" aria-controls="control-panel" aria-expanded="false">
         Tank care
       </button>
@@ -58,6 +54,7 @@
               <label class="field grow" for="parent-a"><span class="field-label">Female</span><select id="parent-a"></select></label>
               <label class="field grow" for="parent-b"><span class="field-label">Male</span><select id="parent-b"></select></label>
             </div>
+            <p id="breeding-status" class="breeding-status" role="status" aria-live="polite"></p>
             <button id="breed-fish" class="button button-muted full-width" type="button">Create one juvenile</button>
           </div>
         </section>
