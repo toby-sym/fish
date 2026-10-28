@@ -327,7 +327,7 @@ export class AquariumRenderer {
     haze.position.set(0, 0, -5.5);
     this.scene.add(haze);
 
-    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xc7ead6, transparent: true, opacity: 0.018, depthWrite: false, side: THREE.DoubleSide });
+    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xc7ead6, transparent: true, opacity: 0.01, depthWrite: false, side: THREE.DoubleSide });
     for (let index = 0; index < 5; index += 1) {
       const width = 0.45 + (index % 3) * 0.32;
       const geometry = new THREE.BufferGeometry();
@@ -385,7 +385,7 @@ export class AquariumRenderer {
     for (let index = 0; index <= segments; index += 1) {
       const t = index / segments;
       const x = -20 + t * 40;
-      const topY = -4.62 + Math.sin(t * Math.PI * 2.5) * 0.1 + Math.sin(t * Math.PI * 7) * 0.045;
+      const topY = -4.62 + Math.sin(t * Math.PI * 2.2) * 0.18 + Math.sin(t * Math.PI * 6.4) * 0.065;
       positions.push(x, topY, -2.2, x, -5.45, -2.2);
       const upper = upperColour.clone().multiplyScalar(0.95 + Math.sin(t * Math.PI * 11) * 0.035);
       colours.push(upper.r, upper.g, upper.b, lowerColour.r, lowerColour.g, lowerColour.b);
@@ -402,7 +402,7 @@ export class AquariumRenderer {
     geometry.computeVertexNormals();
     const substrate = new THREE.Mesh(
       geometry,
-      new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.38, depthWrite: false, side: THREE.DoubleSide }),
+      new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.3, depthWrite: false, side: THREE.DoubleSide }),
     );
     this.scene.add(substrate);
   }

@@ -10,8 +10,11 @@ export class PlantMeshFactory {
     const random = seededRandom(plant.visualSeed);
     const leaves = new LeafBatch(new THREE.Color(plant.colour));
     const root = new THREE.Group();
+    const stemColour = new THREE.Color(plant.colour);
+    if (plant.growthForm === "floating") stemColour.set(0x647d55);
+    else if (plant.growthForm === "rosette") stemColour.lerp(new THREE.Color(0x637c56), 0.42);
     const stemMaterial = new THREE.MeshStandardMaterial({
-      color: new THREE.Color(plant.colour).multiplyScalar(0.68),
+      color: stemColour.multiplyScalar(0.72),
       roughness: 0.94,
       flatShading: false,
     });
@@ -124,8 +127,9 @@ export class PlantMeshFactory {
       const angle = (index / 4) * Math.PI * 2 + (random() - 0.5) * 0.35;
       const reach = 0.55 + random() * 0.65;
       const end = { x: Math.cos(angle) * reach, y: waterline - 0.1 + random() * 0.12, z: Math.sin(angle) * reach * 0.55 };
-      addStem(root, [{ x: 0, y: 0.02, z: 0 }, { x: end.x * 0.25, y: end.y * 0.6, z: end.z * 0.25 }, end], 0.018, stems);
-      leaves.add({ x: end.x - 0.28, y: end.y, z: end.z }, end, 0.25 + random() * 0.08, 0.05, 0.11, { x: end.x + 0.28, y: end.y - 0.02, z: end.z });
+      const shoulder = { x: end.x * 0.24, y: end.y * 0.6, z: end.z * 0.24 };
+      addStem(root, [{ x: 0, y: 0.02, z: 0 }, shoulder, { x: end.x * 0.78, y: end.y * 0.91, z: end.z * 0.78 }, end], 0.022, stems);
+      leaves.addPad({ x: end.x, y: end.y + 0.03, z: end.z }, 0.24 + random() * 0.1, 0.13 + random() * 0.06, angle + Math.PI * 0.35);
     }
   }
 }
@@ -173,6 +177,35 @@ class LeafBatch {
       for (let column = 0; column < columns; column += 1) {
         const a = vertexOffset + row * (columns + 1) + column;
         const b = a + columns + 1;
+        this.indices.push(a, b, b + 1, a, b + 1, a + 1);
+      }
+    }
+  }
+
+  addPad(centre: Point, radiusX: number, radiusY: number, notchDirection: number): void {
+    const rings = 4;
+    const segments = 24;
+    const notch = 0.62;
+    const vertexOffset = this.positions.length / 3;
+    for (let ring = 0; ring <= rings; ring += 1) {
+      const radius = ring / rings;
+      for (let segment = 0; segment <= segments; segment += 1) {
+        const angle = notchDirection + notch / 2 + (segment / segments) * (Math.PI * 2 - notch);
+        const x = Math.cos(angle) * radiusX * radius;
+        const y = Math.sin(angle) * radiusY * radius;
+        this.positions.push(
+          centre.x + x,
+          centre.y + y,
+          centre.z + (1 - radius) * 0.045 + Math.cos(angle * 2) * 0.012 * radius,
+        );
+        const colour = this.base.clone().lerp(this.tip, 0.22 + radius * 0.24);
+        this.colours.push(colour.r, colour.g, colour.b);
+      }
+    }
+    for (let ring = 0; ring < rings; ring += 1) {
+      for (let segment = 0; segment < segments; segment += 1) {
+        const a = vertexOffset + ring * (segments + 1) + segment;
+        const b = a + segments + 1;
         this.indices.push(a, b, b + 1, a, b + 1, a + 1);
       }
     }
