@@ -18,22 +18,27 @@ export class InvertebrateMotion {
   private burstSeconds = 0;
   private time = 0;
   private readonly speed: number;
+  private width: number;
 
   constructor(
     seed: number,
     private readonly kind: "snail" | "shrimp",
     start: InvertebratePosition,
-    private readonly width: number,
+    width: number,
   ) {
     this.random = seededRandom(seed ^ 0x4cf5ad43);
     this.position = { ...start };
     this.homeY = start.y;
+    this.width = width;
     this.speed = kind === "snail" ? 0.1 + this.random() * 0.06 : 0.22 + this.random() * 0.14;
     this.targetX = start.x + start.direction * (kind === "snail" ? 1.2 : 0.8);
     this.targetY = start.y;
   }
 
-  update(deltaSeconds: number): InvertebratePosition {
+  update(deltaSeconds: number, width = this.width): InvertebratePosition {
+    if (Number.isFinite(width) && width > 0) this.width = width;
+    const maxX = Math.max(0.3, this.width / 2 - 0.45);
+    this.position.x = clamp(this.position.x, -maxX, maxX);
     if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return { ...this.position };
     const delta = Math.min(deltaSeconds, 0.25);
     this.time += delta;
@@ -48,7 +53,6 @@ export class InvertebrateMotion {
       if (this.random() < 0.34) this.burstSeconds = 0.28 + this.random() * 0.28;
     }
 
-    const maxX = Math.max(0.3, this.width / 2 - 0.45);
     if (this.kind === "snail" && (this.position.x >= maxX || this.position.x <= -maxX)) {
       this.position.direction = this.position.x >= maxX ? -1 : 1;
       this.targetX = this.position.x + this.position.direction * (0.8 + this.random() * 1.2);

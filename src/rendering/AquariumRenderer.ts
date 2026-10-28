@@ -265,11 +265,13 @@ export class AquariumRenderer {
     }
 
     for (const actor of this.plantActors.values()) {
+      const plantLimit = Math.max(0, this.camera.right - 1.2);
+      actor.position.x = THREE.MathUtils.clamp(actor.position.x, -plantLimit, plantLimit);
       actor.rotation.z = Math.sin(time * 0.55 + actor.position.x) * 0.035;
     }
 
     for (const actor of this.invertebrateActors.values()) {
-      const position = actor.motion.update(deltaSeconds);
+      const position = actor.motion.update(deltaSeconds, this.camera.right - this.camera.left);
       actor.root.position.set(position.x, position.y, position.z);
       actor.root.scale.x = position.direction;
       actor.legs.forEach((leg, index) => {

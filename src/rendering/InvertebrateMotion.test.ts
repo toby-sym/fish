@@ -34,4 +34,12 @@ describe("InvertebrateMotion", () => {
 
     expect(position.x).toBeLessThan(7.4);
   });
+
+  it("clamps to a narrower viewport without advancing animation time", () => {
+    const shrimp = new InvertebrateMotion(92, "shrimp", { x: 7.4, y: -4.7, z: 0.2, direction: 1 }, 16);
+    const resized = shrimp.update(0, 8);
+
+    expect(resized.x).toBe(3.55);
+    expect(shrimp.update(0, 8)).toEqual(resized);
+  });
 });
