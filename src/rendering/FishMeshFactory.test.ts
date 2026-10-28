@@ -16,6 +16,7 @@ describe("FishMeshFactory", () => {
     const fin = (root: THREE.Group) => root.children[0] as THREE.Mesh;
     expect(body(guppy.root).geometry.index).not.toBeNull();
     expect(body(guppy.root).geometry.getAttribute("position").count).toBe(150);
+    expect((body(guppy.root).material as THREE.MeshStandardMaterial).flatShading).toBe(true);
     expect(fin(guppy.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
     expect(fin(tetra.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
     const finDepth = fin(guppy.tail).geometry.getAttribute("position");
