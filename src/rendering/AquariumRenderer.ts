@@ -18,6 +18,11 @@ interface FishActor {
   pectoralFins: [THREE.Mesh, THREE.Mesh];
   motion: FishMotion;
   schoolGroup: string | null;
+  tailFrequency: number;
+  tailAmplitude: number;
+  finFrequency: number;
+  finAmplitude: number;
+  animationPhase: number;
 }
 
 interface FoodBurst {
@@ -202,6 +207,7 @@ export class AquariumRenderer {
         continue;
       }
       const visual = this.fishFactory.create(fish);
+      const animationRandom = seededRandom(fish.genome.visual.seed ^ 0x3c6ef372);
       const actor: FishActor = {
         fish,
         root: visual.root,
@@ -209,6 +215,11 @@ export class AquariumRenderer {
         pectoralFins: visual.pectoralFins,
         motion: new FishMotion(fish.genome.visual.seed, this.screenBounds()),
         schoolGroup: schoolingGroup(fish.speciesId, fish.genome.lineageSpeciesIds, fish.compatibilityGroup),
+        tailFrequency: 4.5 + animationRandom() * 2.2,
+        tailAmplitude: 0.2 + animationRandom() * 0.17,
+        finFrequency: 5.8 + animationRandom() * 2,
+        finAmplitude: 0.07 + animationRandom() * 0.06,
+        animationPhase: animationRandom() * Math.PI * 2,
       };
       this.fishActors.set(fish.id, actor);
       this.scene.add(actor.root);
@@ -269,9 +280,9 @@ export class AquariumRenderer {
       actor.root.position.set(position.x, position.y, position.z);
       actor.root.scale.set(position.direction * scale * ageScale, scale * ageScale, scale * ageScale);
       actor.root.rotation.z = position.pitch;
-      actor.tail.rotation.y = Math.sin(time * 6 + actor.fish.genome.visual.seed) * 0.36;
+      actor.tail.rotation.y = Math.sin(time * actor.tailFrequency + actor.animationPhase) * actor.tailAmplitude;
       actor.pectoralFins.forEach((fin, index) => {
-        fin.rotation.y = Math.sin(time * 7 + actor.fish.genome.visual.seed + index * Math.PI) * 0.11;
+        fin.rotation.y = Math.sin(time * actor.finFrequency + actor.animationPhase + index * Math.PI) * actor.finAmplitude;
       });
     }
 
