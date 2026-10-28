@@ -25,6 +25,7 @@ describe("FishMeshFactory", () => {
     fin(tetra.tail).geometry.computeBoundingBox();
     expect(fin(guppy.tail).geometry.boundingBox?.max.y).toBeGreaterThan(fin(tetra.tail).geometry.boundingBox?.max.y ?? 0);
     expect(swordtail.tail.children).toHaveLength(2);
+    expect(guppy.pectoralFins).toHaveLength(2);
 
     for (const root of [guppy.root, tetra.root, swordtail.root]) {
       root.traverse((object) => {

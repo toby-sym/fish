@@ -6,6 +6,7 @@ import type { FishVisualTraits } from "../domain/types";
 export interface FishMesh {
   root: THREE.Group;
   tail: THREE.Group;
+  pectoralFins: [THREE.Mesh, THREE.Mesh];
 }
 
 export class FishMeshFactory {
@@ -38,10 +39,13 @@ export class FishMeshFactory {
     root.add(body);
 
     const tail = this.createTail(visual, fish.speciesId);
+    const pectoralFins: [THREE.Mesh, THREE.Mesh] = [
+      this.createPectoralFin(visual, 1),
+      this.createPectoralFin(visual, -1),
+    ];
     root.add(tail);
     root.add(this.createDorsalFin(visual));
-    root.add(this.createPectoralFin(visual, 1));
-    root.add(this.createPectoralFin(visual, -1));
+    root.add(...pectoralFins);
     root.add(this.createMouth(visual));
     this.addEyes(root, visual);
 
@@ -51,7 +55,7 @@ export class FishMeshFactory {
       if (object instanceof THREE.Mesh) object.userData.fishId = fish.id;
     });
 
-    return { root, tail };
+    return { root, tail, pectoralFins };
   }
 
   dispose(): void {
@@ -168,14 +172,20 @@ export class FishMeshFactory {
     outline.quadraticCurveTo(-0.14, -0.2, -0.04, -0.31);
     outline.quadraticCurveTo(0.16, -0.27, 0.25, -0.13);
     outline.quadraticCurveTo(0.18, -0.07, 0.05, -0.035);
-    const geometry = colourFin(new THREE.ShapeGeometry(outline, 8), visual.accentColour, visual.secondaryColour);
+    const baseColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.accentColour), 0.28).getHex();
+    const edgeColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.secondaryColour), 0.34).getHex();
+    const geometry = colourFin(new THREE.ShapeGeometry(outline, 8), baseColour, edgeColour);
     const positions = geometry.getAttribute("position");
     for (let index = 0; index < positions.count; index += 1) {
-      positions.setZ(index, side * visual.bodyDepth * 0.78);
+      positions.setX(index, (positions.getX(index) - 0.1) * 0.62);
+      positions.setY(index, (positions.getY(index) + 0.1) * 0.62);
+      positions.setZ(index, 0);
     }
     positions.needsUpdate = true;
     geometry.computeVertexNormals();
-    return new THREE.Mesh(geometry, this.finMaterial);
+    const fin = new THREE.Mesh(geometry, this.finMaterial);
+    fin.position.set(visual.bodyLength * 0.17, -visual.bodyHeight * 0.06, side * visual.bodyDepth * 0.92);
+    return fin;
   }
 
   private createMouth(visual: FishVisualTraits): THREE.Mesh {

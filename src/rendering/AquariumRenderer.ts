@@ -13,6 +13,7 @@ interface FishActor {
   fish: Fish;
   root: THREE.Group;
   tail: THREE.Group;
+  pectoralFins: [THREE.Mesh, THREE.Mesh];
   motion: FishMotion;
   schoolGroup: string | null;
 }
@@ -201,6 +202,7 @@ export class AquariumRenderer {
         fish,
         root: visual.root,
         tail: visual.tail,
+        pectoralFins: visual.pectoralFins,
         motion: new FishMotion(fish.genome.visual.seed, this.screenBounds()),
         schoolGroup: schoolingGroup(fish.speciesId, fish.genome.lineageSpeciesIds, fish.compatibilityGroup),
       };
@@ -262,6 +264,9 @@ export class AquariumRenderer {
       actor.root.scale.set(position.direction * scale * ageScale, scale * ageScale, scale * ageScale);
       actor.root.rotation.z = position.pitch;
       actor.tail.rotation.y = Math.sin(time * 6 + actor.fish.genome.visual.seed) * 0.36;
+      actor.pectoralFins.forEach((fin, index) => {
+        fin.rotation.y = Math.sin(time * 7 + actor.fish.genome.visual.seed + index * Math.PI) * 0.11;
+      });
     }
 
     for (const actor of this.plantActors.values()) {
