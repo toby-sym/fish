@@ -45,7 +45,7 @@ export class FishMotion {
 
   update(deltaSeconds: number, bounds: MotionBounds, schoolCenter?: SchoolCenter): FishPosition {
     const maxX = this.axisLimit(bounds.width, bounds.padding ?? 0.7);
-    const maxY = this.axisLimit(bounds.height, bounds.padding ?? 0.7);
+    const maxY = this.axisLimit(bounds.height, this.foodTarget ? 0.2 : bounds.padding ?? 0.7);
     this.position.x = clamp(this.position.x, -maxX, maxX);
     this.position.y = clamp(this.position.y, -maxY, maxY);
     if (!Number.isFinite(deltaSeconds) || deltaSeconds <= 0) return { ...this.position };
@@ -96,7 +96,7 @@ export class FishMotion {
 
   feedAt(point: { x: number; y: number; z: number }, bounds: MotionBounds, durationSeconds = 4): void {
     const maxX = this.axisLimit(bounds.width, bounds.padding ?? 0.7);
-    const maxY = this.axisLimit(bounds.height, bounds.padding ?? 0.7);
+    const maxY = this.axisLimit(bounds.height, 0.2);
     this.foodTarget = {
       x: clamp(point.x, -maxX, maxX),
       y: clamp(point.y, -maxY, maxY),

@@ -23,7 +23,6 @@ html, body, #aquarium {
   overflow: hidden;
 }
 
-body { min-width: 360px; }
 button, input, select { font: inherit; }
 button { color: inherit; }
 
@@ -38,17 +37,6 @@ button { color: inherit; }
 
 #aquarium-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
 
-.scene-caption {
-  position: absolute;
-  bottom: 7vh;
-  left: clamp(28px, 6vw, 92px);
-  display: grid;
-  gap: 5px;
-  text-shadow: 0 2px 18px rgb(0 20 24 / 72%);
-  pointer-events: none;
-}
-
-.scene-caption strong { font-size: clamp(1.55rem, 3vw, 2.5rem); letter-spacing: -0.055em; font-weight: 600; }
 .eyebrow { margin: 0; color: #a3d4c1; font-size: 0.65rem; font-weight: 800; letter-spacing: 0.17em; text-transform: uppercase; }
 
 .panel-toggle {

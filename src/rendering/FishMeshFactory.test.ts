@@ -12,10 +12,14 @@ describe("FishMeshFactory", () => {
     const tetra = factory.create(makeFish("neon-tetra", 22));
     const swordtail = factory.create(makeFish("swordtail", 33));
 
-    const fin = (root: THREE.Group) => root.children[0] as THREE.Mesh;
-    expect(fin(guppy.tail).geometry.getAttribute("position").count).toBe(12);
-    expect(fin(tetra.tail).geometry.getAttribute("position").count).toBe(6);
-    expect(swordtail.tail.children).toHaveLength(2);
+    const body = guppy.root.children[0] as THREE.Mesh;
+    expect(body.geometry.getAttribute("position").count).toBeGreaterThan(250);
+    expect(body.geometry.getAttribute("color").count).toBe(body.geometry.getAttribute("position").count);
+    expect((body.material as THREE.MeshStandardMaterial).flatShading).toBe(false);
+    expect(guppy.tail.children.filter((child) => child instanceof THREE.Mesh)).toHaveLength(1);
+    expect(tetra.tail.children.filter((child) => child instanceof THREE.Mesh)).toHaveLength(1);
+    expect(swordtail.tail.children.filter((child) => child instanceof THREE.Mesh)).toHaveLength(2);
+    expect(guppy.pectoralFins).toHaveLength(2);
 
     for (const root of [guppy.root, tetra.root, swordtail.root]) {
       root.traverse((object) => {

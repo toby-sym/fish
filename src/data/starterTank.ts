@@ -1,7 +1,7 @@
 import { AquaticInvertebrate, Fish, Plant } from "../domain/entities";
 import { createGenome } from "../domain/random";
 import { Tank } from "../domain/tank";
-import { invertebrateProfiles, speciesById } from "./profiles";
+import { invertebrateProfiles, plantProfiles, speciesById } from "./profiles";
 
 function starterFish(speciesId: string, name: string, sex: "female" | "male", seed: number): Fish {
   const profile = speciesById.get(speciesId);
@@ -23,6 +23,21 @@ function starterFish(speciesId: string, name: string, sex: "female" | "male", se
 export function createStarterTank(): Tank {
   const snail = invertebrateProfiles[0];
   const shrimp = invertebrateProfiles[1];
+  const starterPlant = (speciesId: string, x: number, z: number): Plant => {
+    const profile = plantProfiles.find((item) => item.id === speciesId);
+    if (!profile) throw new Error(`Missing starter plant profile: ${speciesId}`);
+    return new Plant({
+      id: `starter-${speciesId}`,
+      name: profile.commonName,
+      speciesId: profile.id,
+      nitrateUptakePerMinute: profile.nitrateUptakePerMinute,
+      oxygenProductionPerMinute: profile.oxygenProductionPerMinute,
+      visualSeed: profile.visualSeed,
+      colour: profile.colour,
+      growthForm: profile.growthForm,
+      position: { x, y: 0, z },
+    });
+  };
 
   return new Tank({
     id: "freshwater-main",
@@ -34,8 +49,12 @@ export function createStarterTank(): Tank {
       starterFish("endler", "Fern", "female", 2002),
     ],
     plants: [
-      new Plant({ id: "starter-java-fern", name: "Java fern", speciesId: "java-fern", nitrateUptakePerMinute: 0.012, oxygenProductionPerMinute: 0.008, visualSeed: 104, colour: 0x4a966c, growthForm: "fern", position: { x: -3.1, y: 0, z: -0.4 } }),
-      new Plant({ id: "starter-hornwort", name: "Hornwort", speciesId: "hornwort", nitrateUptakePerMinute: 0.018, oxygenProductionPerMinute: 0.012, visualSeed: 312, colour: 0x3f8b63, growthForm: "stem", position: { x: 3, y: 0, z: 0.1 } }),
+      starterPlant("java-fern", -3.1, -0.4),
+      starterPlant("hornwort", 3, 0.1),
+      starterPlant("anubias", -5.1, 0.15),
+      starterPlant("cryptocoryne", 0.1, -0.3),
+      starterPlant("vallisneria", 5.05, -0.6),
+      starterPlant("red-lotus", -1.65, 0.35),
     ],
     invertebrates: [
       new AquaticInvertebrate({ id: "starter-snail", name: "Pebble", speciesId: snail.id, detritusConsumptionPerMinute: snail.detritusConsumptionPerMinute, wastePerMinute: snail.wastePerMinute, oxygenConsumptionPerMinute: snail.oxygenConsumptionPerMinute, colour: snail.colour, position: { x: 2.4, y: 0.18, z: 0.6 } }),

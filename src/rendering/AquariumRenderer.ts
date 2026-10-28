@@ -5,13 +5,34 @@ import { seededRandom } from "../domain/random";
 import type { Tank } from "../domain/tank";
 import { FishMeshFactory } from "./FishMeshFactory";
 import { FishMotion } from "./FishMotion";
+import { InvertebrateMotion } from "./InvertebrateMotion";
+import type { InvertebrateKind } from "./InvertebrateMotion";
+import { PlantMeshFactory } from "./PlantMeshFactory";
+import type { PlantLeafMotion } from "./PlantMeshFactory";
 
 interface FishActor {
   fish: Fish;
   root: THREE.Group;
   tail: THREE.Group;
+  pectoralFins: [THREE.Group, THREE.Group];
   motion: FishMotion;
   schoolGroup: string | null;
+  tailFrequency: number;
+  tailAmplitude: number;
+  finFrequency: number;
+  finAmplitude: number;
+  animationPhase: number;
+}
+
+interface InvertebrateActor {
+  root: THREE.Group;
+  motion: InvertebrateMotion;
+  kind: InvertebrateKind;
+  legs: THREE.Object3D[];
+  feelers: THREE.Object3D[];
+  segments: THREE.Object3D[];
+  foot?: THREE.Mesh;
+  phase: number;
 }
 
 interface FoodBurst {
@@ -28,10 +49,11 @@ export class AquariumRenderer {
   private readonly scene = new THREE.Scene();
   private readonly camera = new THREE.OrthographicCamera(-8, 8, 5, -5, 0.1, 60);
   private readonly fishFactory = new FishMeshFactory();
-  private readonly foodGeometry = new THREE.TetrahedronGeometry(0.055, 0);
+  private readonly plantFactory = new PlantMeshFactory();
+  private readonly foodGeometry = createFlakeGeometry();
   private readonly fishActors = new Map<string, FishActor>();
   private readonly plantActors = new Map<string, THREE.Group>();
-  private readonly invertebrateActors = new Map<string, THREE.Group>();
+  private readonly invertebrateActors = new Map<string, InvertebrateActor>();
   private readonly foodBursts: FoodBurst[] = [];
   private readonly pendingFeeding = new Set<string>();
   private readonly raycaster = new THREE.Raycaster();
@@ -100,15 +122,14 @@ export class AquariumRenderer {
       return;
     }
 
-    const position = actor.root.position;
-    const direction = actor.root.scale.x < 0 ? -1 : 1;
     const bounds = this.screenBounds(actor.fish.genome.visual.bodyLength + actor.fish.genome.visual.tailSize * 0.5);
+    const surfaceY = this.camera.top - 0.12;
     const target = {
-      x: position.x + direction * 1.05,
-      y: position.y + 0.25,
-      z: position.z,
+      x: THREE.MathUtils.clamp(actor.root.position.x, this.camera.left + 0.65, this.camera.right - 0.65),
+      y: surfaceY - 0.58,
+      z: 0.25,
     };
-    actor.motion.feedAt(target, bounds, 4.5);
+    actor.motion.feedAt(target, bounds, 5.5);
 
     const material = new THREE.MeshBasicMaterial({ color: 0xffca72, transparent: true, opacity: 0.95, depthWrite: false });
     const root = new THREE.Group();
@@ -116,20 +137,22 @@ export class AquariumRenderer {
     for (let index = 0; index < 9; index += 1) {
       const crumb = new THREE.Mesh(this.foodGeometry, material);
       crumb.position.set(
-        target.x + (random() - 0.5) * 0.9,
-        target.y + 0.25 + random() * 0.65,
-        target.z + (random() - 0.5) * 0.5,
+        target.x + (random() - 0.5) * 1.2,
+        surfaceY - random() * 0.09,
+        target.z + (random() - 0.5) * 0.32,
       );
-      crumb.scale.setScalar(0.55 + random() * 0.9);
+      const flakeSize = 0.035 + random() * 0.026;
+      crumb.scale.set(flakeSize * (0.8 + random() * 0.7), flakeSize * (0.7 + random() * 0.5), 1);
+      crumb.rotation.z = random() * Math.PI * 2;
       crumb.userData.foodDrift = {
-        x: (random() - 0.5) * 0.08,
-        y: -(0.18 + random() * 0.22),
-        z: (random() - 0.5) * 0.06,
+        x: (random() - 0.5) * 0.045,
+        y: -(0.075 + random() * 0.095),
+        z: (random() - 0.5) * 0.025,
       };
       root.add(crumb);
     }
     this.scene.add(root);
-    this.foodBursts.push({ root, material, ageSeconds: 0, lifetimeSeconds: 2.5 });
+    this.foodBursts.push({ root, material, ageSeconds: 0, lifetimeSeconds: 5.4 });
   }
 
   dispose(): void {
@@ -138,14 +161,14 @@ export class AquariumRenderer {
     this.canvas.removeEventListener("pointerdown", this.handlePointerDown);
     for (const actor of this.fishActors.values()) this.disposeObject(actor.root, false);
     for (const actor of this.plantActors.values()) this.disposeObject(actor);
-    for (const actor of this.invertebrateActors.values()) this.disposeObject(actor);
+    for (const actor of this.invertebrateActors.values()) this.disposeObject(actor.root);
     for (const burst of this.foodBursts) burst.material.dispose();
     this.foodBursts.length = 0;
     this.fishActors.clear();
     this.plantActors.clear();
     this.invertebrateActors.clear();
     this.scene.traverse((object) => {
-      if (object instanceof THREE.Mesh) {
+      if (object instanceof THREE.Mesh || object instanceof THREE.Line) {
         object.geometry.dispose();
         const materials = Array.isArray(object.material) ? object.material : [object.material];
         materials.forEach((material) => material.dispose());
@@ -188,12 +211,19 @@ export class AquariumRenderer {
         continue;
       }
       const visual = this.fishFactory.create(fish);
+      const animationRandom = seededRandom(fish.genome.visual.seed ^ 0x3c6ef372);
       const actor: FishActor = {
         fish,
         root: visual.root,
         tail: visual.tail,
+        pectoralFins: visual.pectoralFins,
         motion: new FishMotion(fish.genome.visual.seed, this.screenBounds()),
         schoolGroup: schoolingGroup(fish.speciesId, fish.genome.lineageSpeciesIds, fish.compatibilityGroup),
+        tailFrequency: 4.1 + animationRandom() * 1.7,
+        tailAmplitude: 0.17 + animationRandom() * 0.11,
+        finFrequency: 5.2 + animationRandom() * 1.8,
+        finAmplitude: 0.12 + animationRandom() * 0.08,
+        animationPhase: animationRandom() * Math.PI * 2,
       };
       this.fishActors.set(fish.id, actor);
       this.scene.add(actor.root);
@@ -201,7 +231,7 @@ export class AquariumRenderer {
     }
 
     const plantIds = new Set(tank.plants.map((plant) => plant.id));
-    this.removeMissingActors(this.plantActors, plantIds);
+    this.removeMissingActors(this.plantActors, plantIds, (actor) => actor);
     for (const plant of tank.plants) {
       if (this.plantActors.has(plant.id)) continue;
       const actor = this.createPlantVisual(plant);
@@ -210,12 +240,12 @@ export class AquariumRenderer {
     }
 
     const invertebrateIds = new Set(tank.invertebrates.map((item) => item.id));
-    this.removeMissingActors(this.invertebrateActors, invertebrateIds);
+    this.removeMissingActors(this.invertebrateActors, invertebrateIds, (actor) => actor.root);
     for (const invertebrate of tank.invertebrates) {
       if (this.invertebrateActors.has(invertebrate.id)) continue;
       const actor = this.createInvertebrateVisual(invertebrate);
       this.invertebrateActors.set(invertebrate.id, actor);
-      this.scene.add(actor);
+      this.scene.add(actor.root);
     }
   }
 
@@ -228,6 +258,28 @@ export class AquariumRenderer {
       school.y += actor.root.position.y;
       school.count += 1;
       schools.set(actor.schoolGroup, school);
+    }
+
+    for (const actor of this.invertebrateActors.values()) {
+      const position = actor.motion.update(deltaSeconds, this.camera.right - this.camera.left);
+      actor.root.position.set(position.x, position.y, position.z);
+      actor.root.scale.x = position.direction;
+      if (actor.kind === "shrimp") {
+        actor.legs.forEach((leg, index) => {
+          leg.rotation.z = Math.sin(time * 10 + actor.phase + index * Math.PI * 0.58) * 0.16;
+        });
+        actor.feelers.forEach((feeler, index) => {
+          feeler.rotation.z = Math.sin(time * 2.3 + actor.phase + index * Math.PI) * 0.09;
+        });
+        actor.segments.forEach((segment, index) => {
+          segment.rotation.z = Math.sin(time * 5.5 - index * 0.38 + actor.phase) * 0.035;
+        });
+      } else {
+        actor.feelers.forEach((feeler, index) => {
+          feeler.rotation.z = Math.sin(time * 0.8 + actor.phase + index * Math.PI) * 0.045;
+        });
+        if (actor.foot) actor.foot.scale.x = 1.2 + Math.sin(time * 1.4 + actor.phase) * 0.035;
+      }
     }
     for (const school of schools.values()) {
       school.x /= school.count;
@@ -247,11 +299,18 @@ export class AquariumRenderer {
       actor.root.position.set(position.x, position.y, position.z);
       actor.root.scale.set(position.direction * scale * ageScale, scale * ageScale, scale * ageScale);
       actor.root.rotation.z = position.pitch;
-      actor.tail.rotation.y = Math.sin(time * 6 + actor.fish.genome.visual.seed) * 0.36;
+      actor.tail.rotation.y = Math.sin(time * actor.tailFrequency + actor.animationPhase) * actor.tailAmplitude;
+      actor.pectoralFins.forEach((fin, index) => {
+        fin.rotation.y = Math.sin(time * actor.finFrequency + actor.animationPhase + index * Math.PI) * actor.finAmplitude;
+        fin.rotation.z = Math.sin(time * actor.finFrequency * 0.7 + actor.animationPhase + index * Math.PI) * 0.035;
+      });
     }
 
     for (const actor of this.plantActors.values()) {
-      actor.rotation.z = Math.sin(time * 0.55 + actor.position.x) * 0.035;
+      const leaves = actor.userData.leafMotions as PlantLeafMotion[] | undefined;
+      leaves?.forEach((leaf) => {
+        leaf.group.rotation.z = leaf.baseAngle + Math.sin(time * leaf.speed + leaf.phase) * leaf.amplitude;
+      });
     }
 
     this.scene.traverse((object) => {
@@ -300,9 +359,9 @@ export class AquariumRenderer {
     haze.position.set(0, 0, -5.5);
     this.scene.add(haze);
 
-    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xb6e7d5, transparent: true, opacity: 0.035, depthWrite: false, side: THREE.DoubleSide });
-    for (let index = 0; index < 7; index += 1) {
-      const width = 0.6 + (index % 3) * 0.5;
+    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xc3eedf, transparent: true, opacity: 0.016, depthWrite: false, side: THREE.DoubleSide });
+    for (let index = 0; index < 5; index += 1) {
+      const width = 0.9 + (index % 3) * 0.7;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute([
         -width / 2, 8.5, 0,
@@ -313,7 +372,7 @@ export class AquariumRenderer {
       geometry.setIndex([0, 1, 2, 0, 2, 3]);
       geometry.computeVertexNormals();
       const shaft = new THREE.Mesh(geometry, shaftMaterial);
-      shaft.position.set(-8 + index * 2.7, 0, -4.5);
+      shaft.position.set(-8 + index * 4.1, 0, -4.5);
       this.scene.add(shaft);
     }
 
@@ -338,80 +397,121 @@ export class AquariumRenderer {
   }
 
   private createPlantVisual(plant: Plant): THREE.Group {
-    const random = seededRandom(plant.visualSeed);
-    const positions: number[] = [];
-    const colours: number[] = [];
-    const base = new THREE.Color(plant.colour);
-    const growthForm = plant.growthForm;
-    const leaves = growthForm === "stem" ? 16 : growthForm === "ribbon" ? 7 : growthForm === "rosette" ? 10 : 8;
-    for (let index = 0; index < leaves; index += 1) {
-      const angle = (index / leaves) * Math.PI * 2;
-      const heightScale = growthForm === "floating" ? 3.2 : growthForm === "ribbon" ? 1.7 : growthForm === "broad-leaf" ? 0.78 : 1;
-      const widthScale = growthForm === "ribbon" ? 0.54 : growthForm === "broad-leaf" || growthForm === "floating" ? 1.8 : 1;
-      const height = (0.75 + random() * 1.1) * heightScale;
-      const width = (0.1 + random() * 0.13) * widthScale;
-      const radius = growthForm === "rosette" ? 0.28 + random() * 0.25 : 0.16;
-      const z = Math.sin(angle) * radius;
-      const x = Math.cos(angle) * radius;
-      const bend = (random() - 0.5) * 0.38;
-      const baseY = 0.05;
-      const leafPoints = [
-        [0, baseY, 0],
-        [x + bend - width, baseY + height * 0.5, z],
-        [x + bend, baseY + height, z],
-        [x + bend + width, baseY + height * 0.52, z],
-      ];
-      for (const triangle of [[leafPoints[0], leafPoints[1], leafPoints[2]], [leafPoints[0], leafPoints[2], leafPoints[3]]]) {
-        const colour = base.clone().multiplyScalar(0.88 + random() * 0.32);
-        for (const point of triangle) {
-          positions.push(point[0], point[1], point[2]);
-          colours.push(colour.r, colour.g, colour.b);
-        }
-      }
-    }
-    const geometry = new THREE.BufferGeometry();
-    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
-    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
-    geometry.computeVertexNormals();
-    const material = new THREE.MeshStandardMaterial({ vertexColors: true, flatShading: true, side: THREE.DoubleSide, roughness: 0.92 });
-    const leavesMesh = new THREE.Mesh(geometry, material);
-    const root = new THREE.Group();
-    root.add(leavesMesh);
-    root.position.set(plant.position.x, plant.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.18, plant.position.z);
-    root.userData.organismId = plant.id;
-    return root;
+    return this.plantFactory.create(plant, this.camera.top - this.camera.bottom);
   }
 
-  private createInvertebrateVisual(item: AquaticInvertebrate): THREE.Group {
+  private createInvertebrateVisual(item: AquaticInvertebrate): InvertebrateActor {
     const root = new THREE.Group();
-    const colour = new THREE.MeshStandardMaterial({ color: item.colour, roughness: 0.72, flatShading: true });
-    if (item.speciesId === "nerite-snail" || item.speciesId === "mystery-snail") {
-      const shell = new THREE.Mesh(new THREE.DodecahedronGeometry(item.speciesId === "mystery-snail" ? 0.21 : 0.16, 0), colour);
-      shell.position.y = 0.15;
+    const kind: InvertebrateKind = item.speciesId.includes("snail") ? "snail" : "shrimp";
+    const baseColour = new THREE.Color(item.colour);
+    const bodyMaterial = new THREE.MeshStandardMaterial({ color: baseColour, roughness: 0.68, flatShading: false });
+    const accentMaterial = new THREE.MeshStandardMaterial({ color: baseColour.clone().lerp(new THREE.Color(0xffd98a), 0.36), roughness: 0.58, flatShading: false });
+    const darkMaterial = new THREE.MeshStandardMaterial({ color: baseColour.clone().multiplyScalar(0.55), roughness: 0.8 });
+    const paleMaterial = new THREE.MeshStandardMaterial({ color: 0xf7e9c8, roughness: 0.5 });
+    const blackMaterial = new THREE.MeshBasicMaterial({ color: 0x22302d });
+    const legs: THREE.Object3D[] = [];
+    const feelers: THREE.Object3D[] = [];
+    const segments: THREE.Object3D[] = [];
+    let foot: THREE.Mesh | undefined;
+    const phase = seededRandom(hashString(item.id))() * Math.PI * 2;
+
+    if (kind === "snail") {
+      const shellSize = item.speciesId === "mystery-snail" ? 0.24 : 0.205;
+      const shell = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 12), accentMaterial);
+      shell.scale.set(shellSize * 1.05, shellSize, shellSize * 0.78);
+      shell.position.set(-0.045, 0.2, 0);
       root.add(shell);
-      const foot = new THREE.Mesh(new THREE.SphereGeometry(0.09, 6, 4), new THREE.MeshStandardMaterial({ color: 0x9a8770, flatShading: true }));
-      foot.scale.set(1.8, 0.55, 0.9);
-      foot.position.y = 0.04;
+      const shellBand = new THREE.Mesh(new THREE.SphereGeometry(1, 16, 10), darkMaterial);
+      shellBand.scale.set(shellSize * 1.055, shellSize * 0.38, shellSize * 0.79);
+      shellBand.position.set(-0.05, 0.28, 0);
+      shellBand.rotation.z = -0.15;
+      root.add(shellBand);
+      const spiralPoints = Array.from({ length: 36 }, (_, index) => {
+        const t = index / 35;
+        const angle = t * Math.PI * 4.4;
+        const radius = shellSize * 0.52 * (1 - t * 0.86);
+        return new THREE.Vector3(-0.045 + Math.cos(angle) * radius, 0.2 + Math.sin(angle) * radius, shellSize * 0.79 + 0.008);
+      });
+      root.add(createTube(spiralPoints, paleMaterial, 0.009, 5));
+      foot = new THREE.Mesh(new THREE.SphereGeometry(1, 14, 8), bodyMaterial);
+      foot.scale.set(0.29, 0.075, 0.13);
+      foot.position.set(0.04, 0.04, 0);
       root.add(foot);
+      for (let index = 0; index < 2; index += 1) {
+        const side = index === 0 ? -1 : 1;
+        const stalk = new THREE.Group();
+        stalk.position.set(0.19, 0.09, side * 0.045);
+        const stalkCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.015, 0.14, side * 0.01), new THREE.Vector3(0.06, 0.23, side * 0.015),
+        ]);
+        stalk.add(new THREE.Mesh(new THREE.TubeGeometry(stalkCurve, 8, 0.012, 5, false), bodyMaterial));
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.033, 10, 8), paleMaterial);
+        eye.position.set(0.06, 0.23, side * 0.015);
+        stalk.add(eye);
+        const pupil = new THREE.Mesh(new THREE.SphereGeometry(0.015, 8, 6), blackMaterial);
+        pupil.position.set(0.076, 0.231, side * 0.021);
+        stalk.add(pupil);
+        root.add(stalk);
+        feelers.push(stalk);
+      }
     } else {
-      const abdomen = new THREE.Mesh(new THREE.CapsuleGeometry(0.07, 0.24, 2, 6), colour);
-      abdomen.rotation.z = Math.PI / 2;
-      abdomen.scale.set(1, 0.85, 0.85);
-      abdomen.position.y = 0.12;
-      root.add(abdomen);
-      const head = new THREE.Mesh(new THREE.SphereGeometry(0.075, 6, 4), colour);
-      head.position.set(0.19, 0.13, 0);
-      root.add(head);
+      const tail = new THREE.Group();
+      tail.position.set(-0.31, 0.12, 0);
       for (let index = 0; index < 4; index += 1) {
-        const leg = new THREE.Mesh(new THREE.ConeGeometry(0.018, 0.17, 4), colour);
-        leg.rotation.z = Math.PI / 2 + (index % 2 ? 0.35 : -0.35);
-        leg.position.set(-0.08 + index * 0.05, 0.025, index % 2 ? 0.07 : -0.07);
+        const fan = new THREE.Mesh(new THREE.SphereGeometry(1, 8, 6), accentMaterial);
+        fan.scale.set(0.075, 0.025, 0.047);
+        fan.position.set(-0.045, (index - 1.5) * 0.034, (index % 2 ? 1 : -1) * 0.025);
+        fan.rotation.z = -0.4;
+        tail.add(fan);
+      }
+      root.add(tail);
+      for (let index = 0; index < 5; index += 1) {
+        const segment = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), index % 2 ? bodyMaterial : accentMaterial);
+        const radius = 0.09 - index * 0.009;
+        segment.scale.set(0.07, radius, radius * 0.82);
+        segment.position.set(-0.2 + index * 0.075, 0.145 - index * 0.006, 0);
+        root.add(segment);
+        segments.push(segment);
+      }
+      const head = new THREE.Mesh(new THREE.SphereGeometry(0.095, 14, 10), bodyMaterial);
+      head.scale.set(1.15, 0.9, 0.82);
+      head.position.set(0.22, 0.15, 0);
+      root.add(head);
+      for (const side of [-1, 1]) {
+        const eye = new THREE.Mesh(new THREE.SphereGeometry(0.023, 8, 6), blackMaterial);
+        eye.position.set(0.265, 0.205, side * 0.063);
+        root.add(eye);
+      }
+      for (let index = 0; index < 6; index += 1) {
+        const side = index % 2 === 0 ? -1 : 1;
+        const leg = new THREE.Group();
+        leg.position.set(-0.12 + Math.floor(index / 2) * 0.085, 0.09, side * 0.055);
+        const legCurve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.025, -0.055, side * 0.035), new THREE.Vector3(0.08, -0.105, side * 0.045),
+        ]);
+        leg.add(new THREE.Mesh(new THREE.TubeGeometry(legCurve, 5, 0.009, 4, false), darkMaterial));
         root.add(leg);
+        legs.push(leg);
+      }
+      for (let index = 0; index < 2; index += 1) {
+        const side = index === 0 ? -1 : 1;
+        const feeler = new THREE.Group();
+        feeler.position.set(0.28, 0.18, side * 0.025);
+        const curve = new THREE.CatmullRomCurve3([
+          new THREE.Vector3(0, 0, 0), new THREE.Vector3(0.11, 0.14, side * 0.045), new THREE.Vector3(0.27, 0.18, side * 0.08),
+        ]);
+        feeler.add(new THREE.Mesh(new THREE.TubeGeometry(curve, 10, 0.006, 4, false), accentMaterial));
+        root.add(feeler);
+        feelers.push(feeler);
       }
     }
-    root.position.set(item.position.x, item.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.2, item.position.z);
+
+    const floorY = item.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.2;
+    const start = { x: item.position.x, y: floorY, z: item.position.z, direction: item.id.charCodeAt(item.id.length - 1) % 2 ? 1 as const : -1 as const };
+    const motion = new InvertebrateMotion(hashString(item.id), kind, start, this.camera.right - this.camera.left);
+    root.position.set(start.x, start.y, start.z);
     root.userData.organismId = item.id;
-    return root;
+    return { root, motion, kind, legs, feelers, segments, foot, phase };
   }
 
   private readonly handlePointerDown = (event: PointerEvent): void => {
@@ -430,11 +530,12 @@ export class AquariumRenderer {
     this.onFishSelected(selected ?? null);
   };
 
-  private removeMissingActors(actors: Map<string, THREE.Group>, liveIds: Set<string>): void {
+  private removeMissingActors<T>(actors: Map<string, T>, liveIds: Set<string>, getRoot: (actor: T) => THREE.Object3D): void {
     for (const [id, actor] of actors) {
       if (liveIds.has(id)) continue;
-      this.scene.remove(actor);
-      this.disposeObject(actor);
+      const root = getRoot(actor);
+      this.scene.remove(root);
+      this.disposeObject(root);
       actors.delete(id);
     }
   }
@@ -458,7 +559,7 @@ export class AquariumRenderer {
 
   private disposeObject(root: THREE.Object3D, disposeMaterials = true): void {
     root.traverse((object) => {
-      if (!(object instanceof THREE.Mesh)) return;
+      if (!(object instanceof THREE.Mesh) && !(object instanceof THREE.Line)) return;
       object.geometry.dispose();
       if (!disposeMaterials) return;
       const materials = Array.isArray(object.material) ? object.material : [object.material];
@@ -470,4 +571,32 @@ export class AquariumRenderer {
 function schoolingGroup(speciesId: string, lineageSpeciesIds: string[], compatibilityGroup: string): string | null {
   const sourceSpeciesId = speciesId === "hybrid" ? lineageSpeciesIds[0] ?? speciesId : speciesId;
   return speciesById.get(sourceSpeciesId)?.schooling ? compatibilityGroup : null;
+}
+
+function createFlakeGeometry(): THREE.BufferGeometry {
+  const shape = new THREE.Shape();
+  shape.moveTo(-0.8, -0.32);
+  shape.lineTo(-0.38, -0.68);
+  shape.lineTo(0.05, -0.45);
+  shape.lineTo(0.56, -0.55);
+  shape.lineTo(0.78, -0.1);
+  shape.lineTo(0.45, 0.22);
+  shape.lineTo(0.62, 0.58);
+  shape.lineTo(0.1, 0.5);
+  shape.lineTo(-0.16, 0.72);
+  shape.lineTo(-0.48, 0.34);
+  shape.lineTo(-0.8, 0.4);
+  shape.closePath();
+  const geometry = new THREE.ShapeGeometry(shape);
+  return geometry;
+}
+
+function createTube(points: THREE.Vector3[], material: THREE.Material, radius: number, tubularSegments: number): THREE.Mesh {
+  return new THREE.Mesh(new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 32, radius, tubularSegments, false), material);
+}
+
+function hashString(value: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < value.length; index += 1) hash = Math.imul(hash ^ value.charCodeAt(index), 16777619);
+  return hash >>> 0;
 }

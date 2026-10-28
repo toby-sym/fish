@@ -57,6 +57,18 @@ describe("FishMotion", () => {
     expect(Math.hypot(target.x - position.x, target.y - position.y)).toBeLessThan(initialDistance);
   });
 
+  it("lets a fish rise into the surface feeding area", () => {
+    const bounds = { width: 14, height: 8, padding: 0.8 };
+    const motion = new FishMotion(421, bounds);
+    motion.feedAt({ x: 0.4, y: 3.7, z: 0 }, bounds, 8);
+
+    let position = motion.update(0, bounds);
+    for (let frame = 0; frame < 240; frame += 1) position = motion.update(1 / 30, bounds);
+
+    expect(position.y).toBeGreaterThan(bounds.height / 2 - bounds.padding);
+    expect(position.y).toBeLessThanOrEqual(bounds.height / 2 - 0.2);
+  });
+
   it("keeps schooling fish more cohesive than solitary swimmers", () => {
     const bounds = { width: 22, height: 10, padding: 0.8 };
     const seeds = [71, 93, 145, 201];
