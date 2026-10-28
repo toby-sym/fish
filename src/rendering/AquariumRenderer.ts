@@ -8,6 +8,7 @@ import { feedingSurfaceTarget } from "./FoodMotion";
 import { InvertebrateMotion } from "./InvertebrateMotion";
 import { FishMotion } from "./FishMotion";
 import { PlantMeshFactory } from "./PlantMeshFactory";
+import { layoutPlantPositions } from "./PlantLayout";
 
 interface FishActor {
   fish: Fish;
@@ -219,6 +220,7 @@ export class AquariumRenderer {
       this.plantActors.set(plant.id, actor);
       this.scene.add(actor);
     }
+    this.layoutPlantActors();
 
     const invertebrateIds = new Set(tank.invertebrates.map((item) => item.id));
     for (const [id, actor] of this.invertebrateActors) {
@@ -378,12 +380,32 @@ export class AquariumRenderer {
 
   private createPlantVisual(plant: Plant): THREE.Group {
     const root = this.plantFactory.create(plant, this.camera.top - this.camera.bottom);
-    root.scale.setScalar(plant.growthForm === "floating" ? 1 : 1.15);
+    const baseScale = plant.growthForm === "floating" ? 1 : 1.15;
+    root.scale.setScalar(baseScale);
     root.position.set(plant.position.x, plant.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.18, plant.position.z);
     root.userData.organismId = plant.id;
     root.userData.growthForm = plant.growthForm;
+    root.userData.baseScale = baseScale;
+    root.userData.sourceX = plant.position.x;
     root.userData.swayPhase = (plant.visualSeed % 6283) / 1000;
     return root;
+  }
+
+  private layoutPlantActors(): void {
+    const roots = [...this.plantActors.values()].sort(
+      (first, second) => Number(first.userData.sourceX) - Number(second.userData.sourceX),
+    );
+    const positions = layoutPlantPositions(
+      roots.map((root) => Number(root.userData.sourceX)),
+      this.camera.right - this.camera.left,
+    );
+    const viewAspect = (this.camera.right - this.camera.left) / (this.camera.top - this.camera.bottom);
+    const horizontalScale = THREE.MathUtils.clamp(viewAspect / 0.9, 0.72, 1);
+    roots.forEach((root, index) => {
+      const baseScale = Number(root.userData.baseScale ?? 1);
+      root.position.x = positions[index];
+      root.scale.set(baseScale * horizontalScale, baseScale, baseScale);
+    });
   }
 
   private createSubstrate(): void {
@@ -563,6 +585,7 @@ export class AquariumRenderer {
     this.camera.bottom = -viewHeight / 2;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    this.layoutPlantActors();
   }
 
   private screenBounds(padding = 0.7): { width: number; height: number; padding: number } {
