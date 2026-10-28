@@ -23,7 +23,6 @@ html, body, #aquarium {
   overflow: hidden;
 }
 
-body { min-width: 360px; }
 button, input, select { font: inherit; }
 button { color: inherit; }
 
