@@ -34,6 +34,7 @@ export class PlantMeshFactory {
       roughness: 0.88,
       metalness: 0,
       side: THREE.DoubleSide,
+      flatShading: true,
     });
     root.add(new THREE.Mesh(leafGeometry, leafMaterial));
     return root;
@@ -147,8 +148,8 @@ class LeafBatch {
   }
 
   add(start: Point, control: Point, width: number, bend: number, ridge = 0.045, end = control): void {
-    const rows = 9;
-    const columns = 4;
+    const rows = 8;
+    const columns = 3;
     const vertexOffset = this.positions.length / 3;
     const dx = end.x - start.x;
     const dy = end.y - start.y;

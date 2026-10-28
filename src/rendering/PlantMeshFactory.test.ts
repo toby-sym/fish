@@ -19,7 +19,7 @@ function makePlant(growthForm: PlantGrowthForm, seed = 42): Plant {
 }
 
 describe("PlantMeshFactory", () => {
-  it("builds curved indexed leaf surfaces for each growth form", () => {
+  it("builds faceted curved leaf surfaces for each growth form", () => {
     const factory = new PlantMeshFactory();
 
     for (const growthForm of growthForms) {
@@ -29,6 +29,7 @@ describe("PlantMeshFactory", () => {
       const positions = geometry.getAttribute("position");
       const normals = geometry.getAttribute("normal");
 
+      expect((leaves.material as THREE.MeshStandardMaterial).flatShading).toBe(true);
       expect(geometry.index?.count).toBeGreaterThan(600);
       expect(positions.count).toBeGreaterThanOrEqual(200);
       expect(normals.count).toBe(positions.count);
