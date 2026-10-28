@@ -172,19 +172,19 @@ export class FishMeshFactory {
     outline.quadraticCurveTo(-0.14, -0.2, -0.04, -0.31);
     outline.quadraticCurveTo(0.16, -0.27, 0.25, -0.13);
     outline.quadraticCurveTo(0.18, -0.07, 0.05, -0.035);
-    const baseColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.accentColour), 0.28).getHex();
-    const edgeColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.secondaryColour), 0.34).getHex();
+    const baseColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.accentColour), 0.1).getHex();
+    const edgeColour = new THREE.Color(visual.primaryColour).lerp(new THREE.Color(visual.secondaryColour), 0.18).getHex();
     const geometry = colourFin(new THREE.ShapeGeometry(outline, 8), baseColour, edgeColour);
     const positions = geometry.getAttribute("position");
     for (let index = 0; index < positions.count; index += 1) {
-      positions.setX(index, (positions.getX(index) - 0.1) * 0.62);
-      positions.setY(index, (positions.getY(index) + 0.1) * 0.62);
+      positions.setX(index, (positions.getX(index) - 0.1) * 0.45);
+      positions.setY(index, (positions.getY(index) + 0.1) * 0.45);
       positions.setZ(index, 0);
     }
     positions.needsUpdate = true;
     geometry.computeVertexNormals();
     const fin = new THREE.Mesh(geometry, this.finMaterial);
-    fin.position.set(visual.bodyLength * 0.17, -visual.bodyHeight * 0.06, side * visual.bodyDepth * 0.92);
+    fin.position.set(visual.bodyLength * 0.1, -visual.bodyHeight * 0.32, side * visual.bodyDepth * 0.98);
     return fin;
   }
 
