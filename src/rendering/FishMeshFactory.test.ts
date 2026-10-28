@@ -18,6 +18,9 @@ describe("FishMeshFactory", () => {
     expect(body(guppy.root).geometry.getAttribute("normal").count).toBeGreaterThan(100);
     expect(fin(guppy.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
     expect(fin(tetra.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
+    const finDepth = fin(guppy.tail).geometry.getAttribute("position");
+    const depths = Array.from({ length: finDepth.count }, (_, index) => finDepth.getZ(index));
+    expect(Math.max(...depths) - Math.min(...depths)).toBeGreaterThan(0.02);
     fin(guppy.tail).geometry.computeBoundingBox();
     fin(tetra.tail).geometry.computeBoundingBox();
     expect(fin(guppy.tail).geometry.boundingBox?.max.y).toBeGreaterThan(fin(tetra.tail).geometry.boundingBox?.max.y ?? 0);

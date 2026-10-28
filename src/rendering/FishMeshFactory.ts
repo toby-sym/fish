@@ -83,8 +83,8 @@ export class FishMeshFactory {
         : shape === "deep"
           ? { length: 0.96, height: 1.12, depth: 1.06 }
           : { length: 1, height: 1, depth: 1 };
-    const longitudinalSegments = 16;
-    const ringSegments = 10;
+    const longitudinalSegments = 20;
+    const ringSegments = 12;
     const positions: number[] = [];
     const colours: number[] = [];
     const indices: number[] = [];
@@ -321,9 +321,12 @@ function colourFin(geometry: THREE.BufferGeometry, baseColour: number, edgeColou
   for (let index = 0; index < positions.count; index += 1) {
     const y = Math.abs(positions.getY(index)) / maxY;
     const x = Math.abs(positions.getX(index)) / maxX;
+    const edgeDistance = clamp(Math.max(x, y), 0, 1);
+    positions.setZ(index, 0.035 * (1 - edgeDistance));
     const colour = base.clone().lerp(edge, clamp(y * 0.22 + x * 0.18, 0.08, 0.4));
     colours.push(colour.r, colour.g, colour.b);
   }
+  positions.needsUpdate = true;
   geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
   geometry.computeVertexNormals();
   geometry.computeBoundingSphere();
