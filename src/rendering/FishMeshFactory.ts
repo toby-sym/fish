@@ -12,7 +12,7 @@ export interface FishMesh {
 export class FishMeshFactory {
   private readonly bodyMaterial = new THREE.MeshStandardMaterial({
     vertexColors: true,
-    flatShading: false,
+    flatShading: true,
     roughness: 0.92,
     metalness: 0,
   });
@@ -85,8 +85,8 @@ export class FishMeshFactory {
         : shape === "deep"
           ? { length: 0.96, height: 1.12, depth: 1.06 }
           : { length: 1, height: 1, depth: 1 };
-    const longitudinalSegments = 20;
-    const ringSegments = 12;
+    const longitudinalSegments = 14;
+    const ringSegments = 10;
     const positions: number[] = [];
     const colours: number[] = [];
     const indices: number[] = [];

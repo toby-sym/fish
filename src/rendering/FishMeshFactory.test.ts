@@ -6,7 +6,7 @@ import { createGenome } from "../domain/random";
 import { FishMeshFactory } from "./FishMeshFactory";
 
 describe("FishMeshFactory", () => {
-  it("builds softly shaded bodies and curved profile-specific fins", () => {
+  it("builds faceted bodies and curved profile-specific fins", () => {
     const factory = new FishMeshFactory();
     const guppy = factory.create(makeFish("guppy", 11));
     const tetra = factory.create(makeFish("neon-tetra", 22));
@@ -15,7 +15,7 @@ describe("FishMeshFactory", () => {
     const body = (root: THREE.Group) => root.children[0] as THREE.Mesh;
     const fin = (root: THREE.Group) => root.children[0] as THREE.Mesh;
     expect(body(guppy.root).geometry.index).not.toBeNull();
-    expect(body(guppy.root).geometry.getAttribute("normal").count).toBeGreaterThan(100);
+    expect(body(guppy.root).geometry.getAttribute("position").count).toBe(150);
     expect(fin(guppy.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
     expect(fin(tetra.tail).geometry.getAttribute("position").count).toBeGreaterThan(30);
     const finDepth = fin(guppy.tail).geometry.getAttribute("position");
