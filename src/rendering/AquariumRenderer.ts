@@ -297,10 +297,18 @@ export class AquariumRenderer {
     }
 
     this.scene.traverse((object) => {
-      const bubble = object.userData.bubble as { baseY: number; phase: number } | undefined;
+      const bubble = object.userData.bubble as {
+        baseXFraction: number;
+        baseYFraction: number;
+        phase: number;
+        riseSpeed: number;
+        swayWidth: number;
+      } | undefined;
       if (!bubble) return;
       const height = this.camera.top - this.camera.bottom;
-      object.position.y = ((bubble.baseY + time * 0.13 + bubble.phase + height / 2) % height) - height / 2;
+      const width = this.camera.right - this.camera.left;
+      object.position.y = ((bubble.baseYFraction * height + time * bubble.riseSpeed + bubble.phase + height / 2) % height) - height / 2;
+      object.position.x = bubble.baseXFraction * width + Math.sin(time * 0.42 + bubble.phase) * bubble.swayWidth;
     });
 
     for (let index = this.foodBursts.length - 1; index >= 0; index -= 1) {
@@ -355,7 +363,9 @@ export class AquariumRenderer {
       geometry.setIndex([0, 1, 2, 0, 2, 3]);
       geometry.computeVertexNormals();
       const shaft = new THREE.Mesh(geometry, shaftMaterial);
-      shaft.position.set(-8 + index * 3.8, 0, -4.5);
+      const horizontalFraction = (index / 4 - 0.5) * 0.92;
+      shaft.position.set(horizontalFraction * (this.camera.right - this.camera.left), 0, -4.5);
+      shaft.userData.viewportXFraction = horizontalFraction;
       this.scene.add(shaft);
     }
 
@@ -368,7 +378,9 @@ export class AquariumRenderer {
       const material = new THREE.MeshStandardMaterial({ color: pebblePalette[Math.floor(random() * pebblePalette.length)], roughness: 0.95 });
       const pebble = new THREE.Mesh(new THREE.SphereGeometry(size, 9, 6), material);
       pebble.scale.set(1.1 + random() * 0.7, 0.55 + random() * 0.45, 0.7 + random() * 0.55);
-      pebble.position.set(-8 + random() * 16, -4.62 + random() * 0.14, 1.1 + random() * 0.55);
+      const horizontalFraction = random() - 0.5;
+      pebble.position.set(horizontalFraction * (this.camera.right - this.camera.left), -4.62 + random() * 0.14, 1.1 + random() * 0.55);
+      pebble.userData.viewportXFraction = horizontalFraction;
       pebble.rotation.set(random(), random(), random());
       this.scene.add(pebble);
     }
@@ -376,8 +388,20 @@ export class AquariumRenderer {
     const bubbleMaterial = new THREE.MeshBasicMaterial({ color: 0xd5f1ec, transparent: true, opacity: 0.32 });
     for (let index = 0; index < 26; index += 1) {
       const bubble = new THREE.Mesh(new THREE.SphereGeometry(0.025 + random() * 0.025, 5, 4), bubbleMaterial);
-      bubble.position.set(-8 + random() * 16, -4.8 + random() * 9.6, -1.2 + random() * 2.4);
-      bubble.userData.bubble = { baseY: bubble.position.y, phase: random() * Math.PI * 2 };
+      const horizontalFraction = random() - 0.5;
+      const verticalFraction = random() - 0.5;
+      bubble.position.set(
+        horizontalFraction * (this.camera.right - this.camera.left),
+        verticalFraction * (this.camera.top - this.camera.bottom),
+        -1.2 + random() * 2.4,
+      );
+      bubble.userData.bubble = {
+        baseXFraction: horizontalFraction,
+        baseYFraction: verticalFraction,
+        phase: random() * Math.PI * 2,
+        riseSpeed: 0.07 + random() * 0.11,
+        swayWidth: 0.035 + random() * 0.11,
+      };
       this.scene.add(bubble);
     }
   }
@@ -592,6 +616,11 @@ export class AquariumRenderer {
     this.camera.bottom = -viewHeight / 2;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(width, height, false);
+    const viewWidth = this.camera.right - this.camera.left;
+    this.scene.traverse((object) => {
+      const horizontalFraction = object.userData.viewportXFraction as number | undefined;
+      if (horizontalFraction !== undefined) object.position.x = horizontalFraction * viewWidth;
+    });
     this.layoutPlantActors();
   }
 
