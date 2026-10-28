@@ -213,7 +213,7 @@ async function saveTank(): Promise<void> {
 }
 
 function randomPosition(): { x: number; y: number; z: number } {
-  return { x: (Math.random() - 0.5) * 7, y: 0, z: (Math.random() - 0.5) * 2.6 };
+  return { x: (Math.random() - 0.5) * 15, y: 0, z: (Math.random() - 0.5) * 2.6 };
 }
 
 function addFish(speciesId: string): void {
@@ -246,6 +246,7 @@ function addPlant(speciesId: string): void {
     oxygenProductionPerMinute: profile.oxygenProductionPerMinute,
     visualSeed: profile.visualSeed + Math.floor(Math.random() * 10000),
     colour: profile.colour,
+    growthForm: profile.growthForm,
     position: randomPosition(),
   });
   requireTank().addPlant(plant);
@@ -301,6 +302,7 @@ byId<HTMLButtonElement>("feed-fish").addEventListener("click", () => perform(() 
   const fish = selectedFish();
   if (!fish) return;
   requireTank().feedFish(fish.id);
+  renderer.triggerFeeding(fish.id);
   commitChange(`${fish.name} enjoyed a snack.`);
 }));
 byId<HTMLButtonElement>("remove-fish").addEventListener("click", () => perform(() => {

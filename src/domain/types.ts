@@ -1,9 +1,14 @@
 export type FishSex = "female" | "male" | "unknown";
 export type LifeStage = "juvenile" | "adult";
-export type FishPattern = "solid" | "stripe" | "mottled";
-export type CompatibilityGroup = "poecilia" | "xiphophorus";
+export type FishPattern = "solid" | "stripe" | "mottled" | "speckled" | "banded" | "marbled";
+export type FishBodyShape = "streamlined" | "deep" | "disc" | "elongated";
+export type FishTailShape = "fan" | "forked" | "lyre" | "veil" | "sword";
+export type PlantGrowthForm = "fern" | "broad-leaf" | "stem" | "ribbon" | "rosette" | "floating";
+export type CompatibilityGroup = "poecilia" | "xiphophorus" | "tetra" | "danio" | "rasbora" | "barb" | "labyrinth" | "catfish" | "cichlid";
 
 export interface FishVisualTraits {
+  bodyShape?: FishBodyShape;
+  tailShape?: FishTailShape;
   bodyLength: number;
   bodyHeight: number;
   bodyDepth: number;
@@ -34,6 +39,7 @@ export interface SpeciesProfile {
   commonName: string;
   familyName: string;
   compatibilityGroup: CompatibilityGroup;
+  schooling?: boolean;
   waterNeeds: WaterNeeds;
   visual: SpeciesVisualProfile;
   wastePerMinute: number;
@@ -46,6 +52,7 @@ export interface PlantProfile {
   oxygenProductionPerMinute: number;
   visualSeed: number;
   colour: number;
+  growthForm?: PlantGrowthForm;
 }
 
 export interface InvertebrateProfile {

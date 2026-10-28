@@ -31,6 +31,7 @@ interface StoredPlant {
   oxygenProductionPerMinute: number;
   visualSeed: number;
   colour: number;
+  growthForm?: Plant["growthForm"];
   position: Vec3Data;
   health: number;
 }
@@ -163,6 +164,7 @@ export class TankRepository {
         oxygenProductionPerMinute: plant.oxygenProductionPerMinute,
         visualSeed: plant.visualSeed,
         colour: plant.colour,
+        growthForm: plant.growthForm,
         position: plant.position,
         health: plant.health,
       })),

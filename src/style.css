@@ -31,20 +31,9 @@ button { color: inherit; }
   position: relative;
   isolation: isolate;
   background:
-    radial-gradient(ellipse at 75% 13%, rgb(72 153 155 / 33%), transparent 42%),
-    linear-gradient(180deg, #0a3d4b 0%, #0b5260 51%, #123d49 100%);
-}
-
-#aquarium::after {
-  position: absolute;
-  z-index: -1;
-  right: -8vw;
-  bottom: -20vh;
-  left: -8vw;
-  height: 35vh;
-  content: "";
-  background: linear-gradient(180deg, #536750, #293e39);
-  clip-path: polygon(0 45%, 13% 37%, 27% 48%, 39% 35%, 51% 47%, 67% 32%, 80% 43%, 91% 35%, 100% 41%, 100% 100%, 0 100%);
+    radial-gradient(ellipse at 76% 8%, rgb(117 194 174 / 31%), transparent 42%),
+    radial-gradient(ellipse at 14% 80%, rgb(18 120 135 / 32%), transparent 48%),
+    linear-gradient(135deg, #082e3b 0%, #0b5962 54%, #174c52 100%);
 }
 
 #aquarium-canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
