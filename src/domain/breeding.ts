@@ -51,9 +51,12 @@ export class BreedingSystem {
     };
 
     const hybrid = first.speciesId !== second.speciesId || first.speciesId === "hybrid" || second.speciesId === "hybrid";
-    const parentSpeciesIds = [...new Set([...first.parentSpeciesIds, ...second.parentSpeciesIds])];
+    const parentSpeciesIds = [...new Set([...first.genome.lineageSpeciesIds, ...second.genome.lineageSpeciesIds])];
+    const lineageName = parentSpeciesIds
+      .map((speciesId) => profiles.get(speciesId)?.commonName ?? speciesId)
+      .join(" × ");
     const speciesName = hybrid
-      ? `${profileA.commonName} × ${profileB.commonName} hybrid`
+      ? `${lineageName} hybrid`
       : profileA.commonName;
 
     return new Fish({
