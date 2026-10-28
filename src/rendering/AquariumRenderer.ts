@@ -359,29 +359,19 @@ export class AquariumRenderer {
     haze.position.set(0, 0, -5.5);
     this.scene.add(haze);
 
-    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xc3eedf, transparent: true, opacity: 0.016, depthWrite: false, side: THREE.DoubleSide });
-    for (let index = 0; index < 5; index += 1) {
-      const width = 0.9 + (index % 3) * 0.7;
-      const geometry = new THREE.BufferGeometry();
-      geometry.setAttribute("position", new THREE.Float32BufferAttribute([
-        -width / 2, 8.5, 0,
-        width * 0.5, 8.5, 0,
-        width * 2.7, -7, 0,
-        -width * 2.3, -7, 0,
-      ], 3));
-      geometry.setIndex([0, 1, 2, 0, 2, 3]);
-      geometry.computeVertexNormals();
-      const shaft = new THREE.Mesh(geometry, shaftMaterial);
-      shaft.position.set(-8 + index * 4.1, 0, -4.5);
-      this.scene.add(shaft);
-    }
-
-    const pebbleMaterial = new THREE.MeshStandardMaterial({ color: 0x526b58, roughness: 0.95, flatShading: true, transparent: true, opacity: 0.72 });
+    const pebbleColours = [0x748776, 0x8d8368, 0x617d72, 0x8d9978, 0x6e6c59];
     const random = seededRandom(117);
     for (let index = 0; index < 30; index += 1) {
-      const size = 0.12 + random() * 0.28;
-      const pebble = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 0), pebbleMaterial);
-      pebble.scale.set(1.3 + random(), 0.55 + random() * 0.45, 0.75 + random() * 0.5);
+      const size = 0.08 + random() * 0.2;
+      const material = new THREE.MeshStandardMaterial({
+        color: pebbleColours[Math.floor(random() * pebbleColours.length)],
+        roughness: 0.95,
+        flatShading: true,
+        transparent: true,
+        opacity: 0.78,
+      });
+      const pebble = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 1), material);
+      pebble.scale.set(1.15 + random() * 0.95, 0.4 + random() * 0.4, 0.65 + random() * 0.45);
       pebble.position.set(-8 + random() * 16, -4.45 + random() * 0.22, -1.8 + random() * 3.2);
       pebble.rotation.set(random(), random(), random());
       this.scene.add(pebble);
