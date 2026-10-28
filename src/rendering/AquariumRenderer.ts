@@ -272,7 +272,9 @@ export class AquariumRenderer {
     for (const actor of this.plantActors.values()) {
       const plantLimit = Math.max(0, this.camera.right - 1.2);
       actor.position.x = THREE.MathUtils.clamp(actor.position.x, -plantLimit, plantLimit);
-      actor.rotation.z = Math.sin(time * 0.55 + actor.position.x) * 0.035;
+      const isFloating = actor.userData.growthForm === "floating";
+      const swayPhase = Number(actor.userData.swayPhase ?? actor.position.x);
+      actor.rotation.z = Math.sin(time * (isFloating ? 0.34 : 0.52) + swayPhase) * (isFloating ? 0.014 : 0.058);
     }
 
     for (const actor of this.invertebrateActors.values()) {
@@ -379,6 +381,8 @@ export class AquariumRenderer {
     root.scale.setScalar(plant.growthForm === "floating" ? 1 : 1.15);
     root.position.set(plant.position.x, plant.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.18, plant.position.z);
     root.userData.organismId = plant.id;
+    root.userData.growthForm = plant.growthForm;
+    root.userData.swayPhase = (plant.visualSeed % 6283) / 1000;
     return root;
   }
 
