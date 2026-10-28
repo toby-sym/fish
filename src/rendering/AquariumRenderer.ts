@@ -68,9 +68,9 @@ export class AquariumRenderer {
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
     this.renderer.outputColorSpace = THREE.SRGBColorSpace;
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.18;
+    this.renderer.toneMappingExposure = 1.08;
     this.scene.background = null;
-    this.scene.fog = new THREE.Fog(0x0d4b58, 23, 48);
+    this.scene.fog = new THREE.Fog(0x20565a, 23, 48);
     this.camera.position.set(0, 0, 18);
     this.camera.lookAt(0, 0, 0);
     this.createLighting();
@@ -310,11 +310,11 @@ export class AquariumRenderer {
   }
 
   private createLighting(): void {
-    this.scene.add(new THREE.HemisphereLight(0xc4edf0, 0x28423a, 2.05));
-    const key = new THREE.DirectionalLight(0xffe7ba, 2.7);
+    this.scene.add(new THREE.HemisphereLight(0xd9eee0, 0x526e5d, 1.75));
+    const key = new THREE.DirectionalLight(0xffebc8, 2.2);
     key.position.set(-4, 8, 6);
     this.scene.add(key);
-    const fill = new THREE.DirectionalLight(0x7bd6d7, 0.85);
+    const fill = new THREE.DirectionalLight(0x97d8c4, 0.95);
     fill.position.set(5, 3, -5);
     this.scene.add(fill);
   }
@@ -327,9 +327,9 @@ export class AquariumRenderer {
     haze.position.set(0, 0, -5.5);
     this.scene.add(haze);
 
-    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xb6e7d5, transparent: true, opacity: 0.035, depthWrite: false, side: THREE.DoubleSide });
-    for (let index = 0; index < 7; index += 1) {
-      const width = 0.6 + (index % 3) * 0.5;
+    const shaftMaterial = new THREE.MeshBasicMaterial({ color: 0xc7ead6, transparent: true, opacity: 0.018, depthWrite: false, side: THREE.DoubleSide });
+    for (let index = 0; index < 5; index += 1) {
+      const width = 0.45 + (index % 3) * 0.32;
       const geometry = new THREE.BufferGeometry();
       geometry.setAttribute("position", new THREE.Float32BufferAttribute([
         -width / 2, 8.5, 0,
@@ -340,17 +340,20 @@ export class AquariumRenderer {
       geometry.setIndex([0, 1, 2, 0, 2, 3]);
       geometry.computeVertexNormals();
       const shaft = new THREE.Mesh(geometry, shaftMaterial);
-      shaft.position.set(-8 + index * 2.7, 0, -4.5);
+      shaft.position.set(-8 + index * 3.8, 0, -4.5);
       this.scene.add(shaft);
     }
 
-    const pebbleMaterial = new THREE.MeshStandardMaterial({ color: 0x526b58, roughness: 0.95, flatShading: true, transparent: true, opacity: 0.72 });
+    this.createSubstrate();
+
     const random = seededRandom(117);
-    for (let index = 0; index < 30; index += 1) {
-      const size = 0.12 + random() * 0.28;
-      const pebble = new THREE.Mesh(new THREE.IcosahedronGeometry(size, 0), pebbleMaterial);
-      pebble.scale.set(1.3 + random(), 0.55 + random() * 0.45, 0.75 + random() * 0.5);
-      pebble.position.set(-8 + random() * 16, -4.45 + random() * 0.22, -1.8 + random() * 3.2);
+    const pebblePalette = [0x758775, 0x84927c, 0x71847b, 0x9a927a, 0x687e73];
+    for (let index = 0; index < 42; index += 1) {
+      const size = 0.075 + random() * 0.12;
+      const material = new THREE.MeshStandardMaterial({ color: pebblePalette[Math.floor(random() * pebblePalette.length)], roughness: 0.95 });
+      const pebble = new THREE.Mesh(new THREE.SphereGeometry(size, 9, 6), material);
+      pebble.scale.set(1.1 + random() * 0.7, 0.55 + random() * 0.45, 0.7 + random() * 0.55);
+      pebble.position.set(-8 + random() * 16, -4.62 + random() * 0.14, 1.1 + random() * 0.55);
       pebble.rotation.set(random(), random(), random());
       this.scene.add(pebble);
     }
@@ -366,9 +369,42 @@ export class AquariumRenderer {
 
   private createPlantVisual(plant: Plant): THREE.Group {
     const root = this.plantFactory.create(plant, this.camera.top - this.camera.bottom);
+    root.scale.setScalar(plant.growthForm === "floating" ? 1 : 1.15);
     root.position.set(plant.position.x, plant.position.y - (this.camera.top - this.camera.bottom) / 2 + 0.18, plant.position.z);
     root.userData.organismId = plant.id;
     return root;
+  }
+
+  private createSubstrate(): void {
+    const segments = 48;
+    const positions: number[] = [];
+    const colours: number[] = [];
+    const indices: number[] = [];
+    const upperColour = new THREE.Color(0x567367);
+    const lowerColour = new THREE.Color(0x35564c);
+    for (let index = 0; index <= segments; index += 1) {
+      const t = index / segments;
+      const x = -20 + t * 40;
+      const topY = -4.62 + Math.sin(t * Math.PI * 2.5) * 0.1 + Math.sin(t * Math.PI * 7) * 0.045;
+      positions.push(x, topY, -2.2, x, -5.45, -2.2);
+      const upper = upperColour.clone().multiplyScalar(0.95 + Math.sin(t * Math.PI * 11) * 0.035);
+      colours.push(upper.r, upper.g, upper.b, lowerColour.r, lowerColour.g, lowerColour.b);
+    }
+    for (let index = 0; index < segments; index += 1) {
+      const top = index * 2;
+      const bottom = top + 1;
+      indices.push(top, bottom, bottom + 2, top, bottom + 2, top + 2);
+    }
+    const geometry = new THREE.BufferGeometry();
+    geometry.setAttribute("position", new THREE.Float32BufferAttribute(positions, 3));
+    geometry.setAttribute("color", new THREE.Float32BufferAttribute(colours, 3));
+    geometry.setIndex(indices);
+    geometry.computeVertexNormals();
+    const substrate = new THREE.Mesh(
+      geometry,
+      new THREE.MeshBasicMaterial({ vertexColors: true, transparent: true, opacity: 0.38, depthWrite: false, side: THREE.DoubleSide }),
+    );
+    this.scene.add(substrate);
   }
 
   private createInvertebrateVisual(item: AquaticInvertebrate): InvertebrateActor {

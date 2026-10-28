@@ -24,6 +24,7 @@ export class FishMeshFactory {
   });
   private readonly eyeMaterial = new THREE.MeshStandardMaterial({ color: 0x10262a, roughness: 0.38 });
   private readonly eyeGlintMaterial = new THREE.MeshBasicMaterial({ color: 0xeaf8dc });
+  private readonly mouthMaterial = new THREE.MeshStandardMaterial({ color: 0x43695f, roughness: 0.78 });
 
   create(fish: Fish): FishMesh {
     const visual = fish.genome.visual;
@@ -41,6 +42,7 @@ export class FishMeshFactory {
     root.add(this.createDorsalFin(visual));
     root.add(this.createPectoralFin(visual, 1));
     root.add(this.createPectoralFin(visual, -1));
+    root.add(this.createMouth(visual));
     this.addEyes(root, visual);
 
     const juvenileScale = fish.lifeStage === "juvenile" ? 0.58 : 1;
@@ -57,6 +59,7 @@ export class FishMeshFactory {
     this.finMaterial.dispose();
     this.eyeMaterial.dispose();
     this.eyeGlintMaterial.dispose();
+    this.mouthMaterial.dispose();
   }
 
   private createBodyGeometry(visual: FishVisualTraits, random: () => number): THREE.BufferGeometry {
@@ -175,6 +178,16 @@ export class FishMeshFactory {
     return new THREE.Mesh(geometry, this.finMaterial);
   }
 
+  private createMouth(visual: FishVisualTraits): THREE.Mesh {
+    const points = [
+      new THREE.Vector3(visual.bodyLength * 0.47, -visual.bodyHeight * 0.12, visual.bodyDepth * 0.48),
+      new THREE.Vector3(visual.bodyLength * 0.51, -visual.bodyHeight * 0.16, visual.bodyDepth * 0.49),
+      new THREE.Vector3(visual.bodyLength * 0.54, -visual.bodyHeight * 0.1, visual.bodyDepth * 0.34),
+    ];
+    const geometry = new THREE.TubeGeometry(new THREE.CatmullRomCurve3(points), 6, 0.007, 4, false);
+    return new THREE.Mesh(geometry, this.mouthMaterial);
+  }
+
   private addEyes(root: THREE.Group, visual: FishVisualTraits): void {
     for (const side of [1, -1]) {
       const eye = new THREE.Mesh(new THREE.SphereGeometry(0.045, 8, 6), this.eyeMaterial);
@@ -238,11 +251,11 @@ function fishSurfaceColour(
     * Math.sin(angle * 13 + bodyT * 26);
   const colour = primary.clone();
 
-  if (pattern === "stripe") colour.lerp(secondary, sideBand * 0.78);
-  if (pattern === "banded") colour.lerp(secondary, bandedMark * 0.82);
-  if (pattern === "mottled") colour.lerp(accent, smoothStep(0.42, 0.96, mottledNoise) * 0.58);
-  if (pattern === "speckled") colour.lerp(accent, smoothStep(0.84, 0.99, speckleNoise) * 0.85);
-  if (pattern === "marbled") colour.lerp(secondary, (0.16 + (marbledWave + 1) * 0.19));
+  if (pattern === "stripe") colour.lerp(secondary, sideBand * 0.58);
+  if (pattern === "banded") colour.lerp(secondary, bandedMark * 0.64);
+  if (pattern === "mottled") colour.lerp(accent, smoothStep(0.42, 0.96, mottledNoise) * 0.42);
+  if (pattern === "speckled") colour.lerp(accent, smoothStep(0.84, 0.99, speckleNoise) * 0.62);
+  if (pattern === "marbled") colour.lerp(secondary, (0.12 + (marbledWave + 1) * 0.15));
 
   const bellyShade = smoothStep(-0.9, -0.15, Math.sin(angle)) * 0.05;
   return colour.multiplyScalar(1 - bellyShade);
