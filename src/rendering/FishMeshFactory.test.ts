@@ -34,6 +34,20 @@ describe("FishMeshFactory", () => {
     }
     factory.dispose();
   });
+
+  it("leaves juvenile sizing to the renderer lifecycle scale", () => {
+    const factory = new FishMeshFactory();
+    const juvenile = makeFish("guppy", 44);
+    juvenile.lifeStage = "juvenile";
+
+    const visual = factory.create(juvenile);
+
+    expect(visual.root.scale.toArray()).toEqual([1, 1, 1]);
+    visual.root.traverse((object) => {
+      if (object instanceof THREE.Mesh) object.geometry.dispose();
+    });
+    factory.dispose();
+  });
 });
 
 function makeFish(speciesId: string, seed: number): Fish {

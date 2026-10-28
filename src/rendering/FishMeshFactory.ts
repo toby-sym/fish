@@ -49,8 +49,6 @@ export class FishMeshFactory {
     root.add(this.createMouth(visual));
     this.addEyes(root, visual);
 
-    const juvenileScale = fish.lifeStage === "juvenile" ? 0.58 : 1;
-    root.scale.setScalar(juvenileScale);
     root.traverse((object) => {
       if (object instanceof THREE.Mesh) object.userData.fishId = fish.id;
     });
